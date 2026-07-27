@@ -1,0 +1,30 @@
+name: Label PR by type
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+permissions:
+  pull-requests: write
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const map = {
+              feat: 'type: feature',
+              fix: 'type: fix',
+              refactor: 'type: refactor',
+              chore: 'type: chore',
+              docs: 'type: docs',
+            };
+            const m = title.match(/^(\w+)(\(.+\))?!?:/);
+            const label = m && map[m[1]];
+            if (label) {
+              await github.rest.issues.addLabels({
+                ...context.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: [label],
+              });
+            }
