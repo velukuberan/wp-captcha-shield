@@ -1,4 +1,3 @@
-````md
 # WP Captcha Shield
 
 WP Captcha Shield is a WordPress plugin for protecting selected WordPress and WooCommerce forms with configurable CAPTCHA providers.
@@ -132,7 +131,5 @@ Uninstalling the plugin permanently removes plugin-owned data. It does not conta
 WP Captcha Shield is free software distributed under the terms of the GNU General Public License version 3 or, at your option, any later version.
 
 See [LICENSE](LICENSE) for the complete license text.
-
-```
 
 ```
