@@ -66,7 +66,6 @@ Domain/
 Providers/
 WordPress/
 ```
-````
 
 The domain remains independent from WordPress and provider-specific implementations. Form integrations depend only on common CAPTCHA contracts, while provider verification results are mapped into a shared result model.
 
