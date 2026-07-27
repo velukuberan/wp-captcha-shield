@@ -1,17 +1,18 @@
+````md
 # WP Captcha Shield
 
-WP Captcha Shield is a WordPress plugin for protecting selected WordPress and WooCommerce forms with a configurable CAPTCHA provider.
+WP Captcha Shield is a WordPress plugin for protecting selected WordPress and WooCommerce forms with configurable CAPTCHA providers.
 
-The plugin is designed around a simple provider-neutral model:
+The plugin uses a provider-neutral configuration model:
 
-- choose one global default provider;
+- choose one global default CAPTCHA provider;
 - override the provider for individual forms;
 - disable CAPTCHA globally or for a specific form;
-- keep provider logic independent from WordPress and WooCommerce form integrations.
+- keep CAPTCHA providers independent from WordPress and WooCommerce form integrations.
 
-> Project status: planning and architecture phase. The plugin is not yet ready for production use.
+> **Project status:** Planning and early development. The plugin is not ready for production use.
 
-## Planned providers
+## Planned CAPTCHA providers
 
 - Cloudflare Turnstile
 - Google Cloud Fraud Defense using the reCAPTCHA Enterprise assessment API
@@ -38,6 +39,8 @@ The plugin is designed around a simple provider-neutral model:
 
 ### Global default
 
+The global CAPTCHA setting can be:
+
 - Disabled
 - Cloudflare Turnstile
 - Google Cloud Fraud Defense
@@ -45,39 +48,32 @@ The plugin is designed around a simple provider-neutral model:
 
 ### Per-form override
 
-- Use default
-- Disabled
-- Cloudflare Turnstile
-- Google Cloud Fraud Defense
-- hCaptcha
+Each supported form can be configured to:
+
+- use the global default;
+- disable CAPTCHA;
+- use Cloudflare Turnstile;
+- use Google Cloud Fraud Defense;
+- use hCaptcha.
 
 `Disabled` is a configuration state, not a CAPTCHA provider.
 
-## Architectural direction
+## Architecture
 
-The project uses three primary areas:
+The project is organized into three primary areas:
 
 ```text
 Domain/
 Providers/
 WordPress/
 ```
+````
 
-The main architectural boundaries are:
+The domain remains independent from WordPress and provider-specific implementations. Form integrations depend only on common CAPTCHA contracts, while provider verification results are mapped into a shared result model.
 
-- the domain never knows about WordPress hooks;
-- WordPress options are accessed through a repository;
-- form integrations never know provider internals;
-- providers never know which form invoked them;
-- application coordination lives under `WordPress/`;
-- provider verification results are mapped to a common result model;
-- protected forms fail closed;
-- secrets remain server-side;
-- CAPTCHA tokens are not stored.
+See ARCHITECTURE.md for the complete architectural design and dependency rules.
 
-See [`Architecture.txt`](Architecture.txt) for the compact architecture summary.
-
-## Technical requirements
+## Requirements
 
 Minimum supported versions:
 
@@ -85,69 +81,58 @@ Minimum supported versions:
 - WordPress 6.9 or newer
 - WooCommerce 10.9 or newer
 
-Primary development environment:
-
-- WordPress 7.0
-- WooCommerce 10.9.4
-- the currently installed PHP 8.x version
-
 The project uses Composer, namespaces, and PSR-4 autoloading.
 
-See [`Technical.txt`](Technical.txt) for the complete technical requirements.
+See TECHNICAL_REQUIREMENTS.md for the complete platform, tooling, testing, and packaging requirements.
 
-## Development quality
+## Security
 
-Planned development and quality tools include:
+CAPTCHA verification is performed server-side. Provider secrets never reach browser code, submitted CAPTCHA tokens are treated as untrusted input, and protected forms fail closed when verification cannot be completed.
+
+Raw provider errors, credentials, and CAPTCHA tokens must not be exposed to visitors or written to normal application logs.
+
+## Performance
+
+The plugin is designed to load only the CAPTCHA provider required for the current protected form and to avoid initializing integrations that are not needed for the current request.
+
+## Development
+
+Planned quality tools include:
 
 - PHPUnit
-- Mockery
-- Brain Monkey
 - PHPStan
-- PHPStan strict rules
-- PHPStan for WordPress
 - PHP_CodeSniffer
-- WordPress Coding Standards
-- Slevomat Coding Standard
-- Playwright for browser-based end-to-end testing
+- Playwright
 
-Real CAPTCHA verification will be tested manually. Automated tests will verify the plugin behavior around provider boundaries without attempting to solve live CAPTCHA challenges.
+The project will expose standard Composer commands such as:
 
-## Performance principles
+```bash
+composer test
+composer analyse
+composer lint
+composer check
+```
 
-- Load provider scripts only where a protected form is present.
-- Load only the effective provider.
-- Avoid repeated option reads within a request.
-- Keep the plugin bootstrap lightweight.
-- Do not initialize WooCommerce integrations when WooCommerce is inactive.
-- Do not contact a provider until a protected form is submitted.
-
-## Security principles
-
-- Verification always occurs server-side.
-- Provider secrets never reach browser code.
-- Submitted tokens are treated as untrusted input.
-- Protected forms fail closed when verification cannot be completed.
-- Raw provider errors are never shown to visitors.
-- Credentials and CAPTCHA tokens are never written to normal logs.
+See CODING_STANDARDS.md for coding conventions, testing practices, static-analysis rules, and completion criteria.
 
 ## Data cleanup
 
-- Deactivation preserves plugin settings and credentials.
-- Uninstallation permanently removes all plugin-owned data.
-- Uninstallation does not contact or revoke credentials at external providers.
+Deactivating the plugin preserves its settings and credentials.
 
-## Packaging
-
-The GitHub repository will contain the complete test suite and development tooling.
-
-The production plugin ZIP will contain only runtime files required by WordPress. Tests, development dependencies, CI files, coverage output, Playwright files, and local tooling will be excluded through a repeatable release process.
+Uninstalling the plugin permanently removes plugin-owned data. It does not contact external CAPTCHA providers or revoke credentials stored with those providers.
 
 ## Documentation
 
-- [`ARCHITECTURE.md`](ARCHITECTURE.md)
-- [`TECHNICAL_REQUIREMENTS.md`](TECHNICAL_REQUIREMENTS.md)
-- [`CODING_STANDARDS.md`](CODING_STANDARDS.md)
+- [Architecture](ARCHITECTURE.md)
+- [Technical requirements](TECHNICAL_REQUIREMENTS.md)
+- [Coding standards](CODING_STANDARDS.md)
 
-## Copyright and License
+## License
 
-This package is [free software](https://www.gnu.org/philosophy/free-sw.en.html) distributed under the terms of the GNU General Public License version 3 or (at your option) any later version. For the full license, see [LICENSE](./LICENSE).
+WP Captcha Shield is free software distributed under the terms of the GNU General Public License version 3 or, at your option, any later version.
+
+See [LICENSE](LICENSE) for the complete license text.
+
+```
+
+```
