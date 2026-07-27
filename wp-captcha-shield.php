@@ -2,14 +2,15 @@
 
 /**
  * Plugin Name:       WP Captcha Shield
- * Plugin URI:        https://vkuberan.in/wp-captcha-shield
- * Description:       WP Captcha Shield is a WordPress plugin for protecting selected WordPress and WooCommerce forms
+ * Plugin URI:        https://github.com/velukuberan/wp-captcha-shield
+ * Description:       Protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers.
  * Version:           0.1.0
- * Requires at least: 7.0
+ * Requires at least: 6.9
  * Requires PHP:      8.1
  * Author:            Velmurugan Kuberan
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Author URI:        https://vkuberan.in
+ * License:           GPL-3.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       wp-captcha-shield
  *
  * @package WpCaptchaShield
@@ -17,7 +18,6 @@
 
 declare(strict_types=1);
 
-// Prevent direct file access.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -26,3 +26,7 @@ define('WP_CAPTCHA_SHIELD_VERSION', '0.1.0');
 define('WP_CAPTCHA_SHIELD_FILE', __FILE__);
 define('WP_CAPTCHA_SHIELD_PATH', plugin_dir_path(__FILE__));
 define('WP_CAPTCHA_SHIELD_URL', plugin_dir_url(__FILE__));
+
+require_once WP_CAPTCHA_SHIELD_PATH . 'vendor/autoload.php';
+
+// A dedicated class under WordPress/ should perform application startup.
