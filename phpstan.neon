@@ -1,0 +1,27 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    # Level 6 baseline for the whole plugin. The pure security core
+    # (TOTP math, hashing, token state machine) has no WordPress in it,
+    # so it can be pushed toward max later via a stricter per-path config.
+    level: 6
+
+    # Analyse as our floor, not the version we happen to run locally,
+    # so 8.2+ syntax that would break on 8.1 gets flagged here too.
+    phpVersion: 80100
+
+    bootstrapFiles:
+        - tests/phpstan/constants.php
+        
+    paths:
+        - src
+        - wp-captcha-shield.php
+
+    excludePaths:
+        - vendor/*
+        - build/*
+
+    # phpstan-wordpress + phpstan-strict-rules are wired in automatically
+    # by phpstan/extension-installer — no manual includes needed.
+    # WordPress core stubs are provided by szepeviktor/phpstan-wordpress.

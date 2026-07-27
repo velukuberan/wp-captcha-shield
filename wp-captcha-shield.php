@@ -28,5 +28,3 @@ define('WP_CAPTCHA_SHIELD_PATH', plugin_dir_path(__FILE__));
 define('WP_CAPTCHA_SHIELD_URL', plugin_dir_url(__FILE__));
 
 require_once WP_CAPTCHA_SHIELD_PATH . 'vendor/autoload.php';
-
-// A dedicated class under WordPress/ should perform application startup.
