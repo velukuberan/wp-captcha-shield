@@ -95,23 +95,11 @@ The plugin is designed to load only the CAPTCHA provider required for the curren
 
 ## Development
 
-Planned quality tools include:
-
-- PHPUnit
-- PHPStan
-- PHP_CodeSniffer
-- Playwright
-
-The project will expose standard Composer commands such as:
+Install the PHP dependencies:
 
 ```bash
-composer test
-composer analyse
-composer lint
-composer check
+composer install
 ```
-
-See CODING_STANDARDS.md for coding conventions, testing practices, static-analysis rules, and completion criteria.
 
 ## Data cleanup
 
@@ -130,5 +118,3 @@ Uninstalling the plugin permanently removes plugin-owned data. It does not conta
 WP Captcha Shield is free software distributed under the terms of the GNU General Public License version 3 or, at your option, any later version.
 
 See [LICENSE](LICENSE) for the complete license text.
-
-```
