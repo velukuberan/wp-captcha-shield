@@ -99,7 +99,16 @@ Install the PHP dependencies:
 
 ```bash
 composer install
+composer test
+composer test:unit
+composer test:integration
+composer analyse
+composer lint
+composer fix
+composer check
 ```
+
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing practices, static-analysis rules, and completion criteria.
 
 ## Data cleanup
 
