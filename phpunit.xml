@@ -16,6 +16,10 @@
         </testsuite>
     </testsuites>
 
+    <testsuite name="integration">
+        <directory>tests/Integration</directory>
+    </testsuite>>
+
     <source>
         <include>
             <directory>src</directory>
