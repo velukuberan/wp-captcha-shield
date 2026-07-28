@@ -1,5 +1,0 @@
-# Regenerate with:  vendor/bin/phpstan analyse --generate-baseline
-# Keep this diffable and committed; it captures pre-existing noise so a
-# high level can be adopted without fixing everything up front.
-parameters:
-    ignoreErrors: []
