@@ -30,28 +30,32 @@ Compatibility testing must also cover the minimum supported versions.
 Version 1 supports:
 
 - Cloudflare Turnstile
-- Google Cloud Fraud Defense using the reCAPTCHA Enterprise assessment API
+- Google reCAPTCHA using the Google Cloud Fraud Defense reCAPTCHA Enterprise assessment API
 - hCaptcha
 
 All provider responses must be mapped into the common verification result.
 
 ### Cloudflare Turnstile
 
-- Use Managed mode.
+- Support Managed, Non-Interactive, and Invisible modes.
+- Managed is the default and recommended mode.
 - Store the site key and secret key.
-- Do not expose a widget-mode selector in version 1.
 - Verify tokens server-side.
 
-### Google Cloud Fraud Defense
+### Google reCAPTCHA
 
 - Use the reCAPTCHA Enterprise assessment API.
-- Use score-based and assessment-based protection.
+- Support score-based, checkbox, and invisible modes.
+- Score-based is the default and recommended mode.
 - Version 1 covers bot detection and form-abuse assessment.
 - Transaction fraud, payment-risk modelling, and account-takeover modelling are outside version 1.
 
 ### hCaptcha
 
+- Support Checkbox and Invisible display modes.
+- Checkbox is the default mode.
 - Store the site key and secret key.
+- Passive behaviour remains controlled by the hCaptcha account and site-key configuration.
 - Use the official hCaptcha integration.
 - Verify tokens server-side.
 
@@ -61,7 +65,7 @@ Provide one WordPress admin settings page with:
 
 - General settings
 - Cloudflare Turnstile settings
-- Google Cloud Fraud Defense settings
+- Google reCAPTCHA settings
 - hCaptcha settings
 
 Requirements:
