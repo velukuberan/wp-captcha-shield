@@ -22,13 +22,13 @@ final class EffectiveCaptchaProviderTest extends TestCase
     public function testItCanRepresentAnEnabledProvider(): void
     {
         $effectiveProvider = EffectiveCaptchaProvider::enabled(
-            CaptchaProvider::GoogleCloudFraudDefense,
+            CaptchaProvider::GoogleRecaptcha
         );
 
         self::assertFalse($effectiveProvider->isDisabled());
         self::assertTrue($effectiveProvider->isEnabled());
         self::assertSame(
-            CaptchaProvider::GoogleCloudFraudDefense,
+            CaptchaProvider::GoogleRecaptcha,
             $effectiveProvider->provider(),
         );
     }
