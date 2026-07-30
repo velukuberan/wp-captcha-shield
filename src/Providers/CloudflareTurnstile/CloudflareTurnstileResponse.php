@@ -14,13 +14,19 @@ final class CloudflareTurnstileResponse
     private function __construct(
         private bool $successful,
         private array $errorCodes,
+        private ?string $action,
     ) {
         $this->assertValidState();
     }
 
-    public static function successful(): self
-    {
-        return new self(true, []);
+    public static function successful(
+        ?string $action = null,
+    ): self {
+        return new self(
+            true,
+            [],
+            self::normalizeAction($action),
+        );
     }
 
     /**
@@ -28,7 +34,7 @@ final class CloudflareTurnstileResponse
      */
     public static function rejected(array $errorCodes): self
     {
-        return new self(false, $errorCodes);
+        return new self(false, $errorCodes, null);
     }
 
     public function isSuccessful(): bool
@@ -42,6 +48,11 @@ final class CloudflareTurnstileResponse
     public function errorCodes(): array
     {
         return $this->errorCodes;
+    }
+
+    public function action(): ?string
+    {
+        return $this->action;
     }
 
     private function assertValidState(): void
@@ -58,6 +69,12 @@ final class CloudflareTurnstileResponse
             );
         }
 
+        if (!$this->successful && $this->action !== null) {
+            throw new InvalidArgumentException(
+                'A rejected Turnstile response cannot contain an action.',
+            );
+        }
+
         foreach ($this->errorCodes as $errorCode) {
             if ($errorCode === '') {
                 throw new InvalidArgumentException(
@@ -65,5 +82,16 @@ final class CloudflareTurnstileResponse
                 );
             }
         }
+    }
+
+    private static function normalizeAction(?string $action): ?string
+    {
+        if ($action === null) {
+            return null;
+        }
+
+        $action = trim($action);
+
+        return $action === '' ? null : $action;
     }
 }

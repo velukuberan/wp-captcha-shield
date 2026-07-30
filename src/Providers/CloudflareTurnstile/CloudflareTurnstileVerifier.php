@@ -7,6 +7,7 @@ namespace WpCaptchaShield\Providers\CloudflareTurnstile;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
@@ -34,10 +35,9 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
     }
 
     public function verify(
-        string $token,
-        ?string $remoteIp = null,
+        CaptchaVerificationRequest $request,
     ): VerificationResult {
-        $token = trim($token);
+        $token = $request->token();
         $secretKey = trim($this->secretKey);
 
         $inputFailure = $this->validateInput(
@@ -57,7 +57,7 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
                     'body' => $this->requestBody(
                         $token,
                         $secretKey,
-                        $remoteIp,
+                        $request->remoteIp(),
                     ),
                 ],
             );
@@ -80,18 +80,29 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
             $httpResponse->body(),
         );
 
-        return match (true) {
-            $providerResponse === null =>
-            VerificationResult::unavailable(
+        if ($providerResponse === null) {
+            return VerificationResult::unavailable(
                 VerificationFailureReason::MalformedResponse,
-            ),
-            $providerResponse->isSuccessful() =>
-            VerificationResult::successful(),
-            default =>
-            $this->errorMapper->map(
+            );
+        }
+
+        if (!$providerResponse->isSuccessful()) {
+            return $this->errorMapper->map(
                 $providerResponse->errorCodes(),
-            ),
-        };
+            );
+        }
+
+        if (
+            $request->expectedAction() !== null
+            && $providerResponse->action()
+                !== $request->expectedAction()
+        ) {
+            return VerificationResult::failed(
+                VerificationFailureReason::ProviderRejected,
+            );
+        }
+
+        return VerificationResult::successful();
     }
 
     private function validateInput(
@@ -126,8 +137,8 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
             'response' => $token,
         ];
 
-        if ($remoteIp !== null && trim($remoteIp) !== '') {
-            $body['remoteip'] = trim($remoteIp);
+        if ($remoteIp !== null) {
+            $body['remoteip'] = $remoteIp;
         }
 
         return $body;

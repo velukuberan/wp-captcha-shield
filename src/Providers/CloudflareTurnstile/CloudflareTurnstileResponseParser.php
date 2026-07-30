@@ -49,17 +49,23 @@ final class CloudflareTurnstileResponseParser
     private function parseSuccessfulResponse(
         array $payload,
     ): ?CloudflareTurnstileResponse {
-        if (!array_key_exists('error-codes', $payload)) {
-            return CloudflareTurnstileResponse::successful();
+        $errorCodes = [];
+
+        if (array_key_exists('error-codes', $payload)) {
+            $errorCodes = $this->extractErrorCodes($payload);
+
+            if ($errorCodes === null || $errorCodes !== []) {
+                return null;
+            }
         }
 
-        $errorCodes = $this->extractErrorCodes($payload);
+        $action = $this->extractAction($payload);
 
-        if ($errorCodes !== []) {
+        if ($action === false) {
             return null;
         }
 
-        return CloudflareTurnstileResponse::successful();
+        return CloudflareTurnstileResponse::successful($action);
     }
 
     /**
@@ -87,5 +93,22 @@ final class CloudflareTurnstileResponseParser
         }
 
         return $errorCodes;
+    }
+
+    /**
+     * @param array<mixed> $payload
+     *
+     */
+    private function extractAction(array $payload): string|null|false
+    {
+        if (!array_key_exists('action', $payload)) {
+            return null;
+        }
+
+        if (!is_string($payload['action'])) {
+            return false;
+        }
+
+        return $payload['action'];
     }
 }

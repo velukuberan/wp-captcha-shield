@@ -7,6 +7,7 @@ namespace WpCaptchaShield\Providers\HCaptcha;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
@@ -31,10 +32,9 @@ final class HCaptchaVerifier implements CaptchaVerifier
     }
 
     public function verify(
-        string $token,
-        ?string $remoteIp = null,
+        CaptchaVerificationRequest $request,
     ): VerificationResult {
-        $token = trim($token);
+        $token = $request->token();
         $secretKey = trim($this->secretKey);
 
         $inputFailure = $this->validateInput($token, $secretKey);
@@ -51,7 +51,7 @@ final class HCaptchaVerifier implements CaptchaVerifier
                     'body' => $this->requestBody(
                         $token,
                         $secretKey,
-                        $remoteIp,
+                        $request->remoteIp(),
                     ),
                 ],
             );
@@ -116,8 +116,8 @@ final class HCaptchaVerifier implements CaptchaVerifier
             'response' => $token,
         ];
 
-        if ($remoteIp !== null && trim($remoteIp) !== '') {
-            $body['remoteip'] = trim($remoteIp);
+        if ($remoteIp !== null) {
+            $body['remoteip'] = $remoteIp;
         }
 
         return $body;

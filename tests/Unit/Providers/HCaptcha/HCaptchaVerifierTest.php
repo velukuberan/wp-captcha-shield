@@ -13,6 +13,7 @@ use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
 use WpCaptchaShield\Domain\Http\HttpResponse;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationStatus;
 use WpCaptchaShield\Providers\HCaptcha\HCaptchaErrorMapper;
@@ -50,7 +51,9 @@ final class HCaptchaVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->verifier->verify('   ');
+        $result = $this->verifier->verify(
+            $this->request('   '),
+        );
 
         self::assertSame(VerificationStatus::Failed, $result->status());
         self::assertSame(
@@ -63,7 +66,9 @@ final class HCaptchaVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->createVerifier('   ')->verify('submitted-token');
+        $result = $this->createVerifier('   ')->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Misconfigured,
@@ -94,8 +99,12 @@ final class HCaptchaVerifierTest extends TestCase
             ->andReturn(new HttpResponse(200, '{"success":true}'));
 
         $result = $this->verifier->verify(
-            ' submitted-token ',
-            ' 203.0.113.10 ',
+            $this->request(
+                ' submitted-token ',
+                ' 203.0.113.10 ',
+                ' Mozilla/5.0 ',
+                ' wordpress_login ',
+            ),
         );
 
         self::assertTrue($result->isSuccessful());
@@ -121,7 +130,12 @@ final class HCaptchaVerifierTest extends TestCase
 
         self::assertTrue(
             $this->verifier
-                ->verify('submitted-token', $remoteIp)
+                ->verify(
+                    $this->request(
+                        'submitted-token',
+                        $remoteIp,
+                    ),
+                )
                 ->isSuccessful(),
         );
     }
@@ -136,6 +150,34 @@ final class HCaptchaVerifierTest extends TestCase
         yield 'whitespace' => ['   '];
     }
 
+    public function testItIgnoresUnusedRequestContext(): void
+    {
+        $this->httpClient
+            ->shouldReceive('post')
+            ->once()
+            ->with(
+                'https://api.hcaptcha.com/siteverify',
+                [
+                    'timeout' => 10,
+                    'body' => [
+                        'secret' => 'secret-key',
+                        'response' => 'submitted-token',
+                    ],
+                ],
+            )
+            ->andReturn(new HttpResponse(200, '{"success":true}'));
+
+        $result = $this->verifier->verify(
+            $this->request(
+                'submitted-token',
+                userAgent: 'Mozilla/5.0',
+                expectedAction: 'wordpress_login',
+            ),
+        );
+
+        self::assertTrue($result->isSuccessful());
+    }
+
     public function testItMapsAProviderRejection(): void
     {
         $this->expectResponse(
@@ -145,7 +187,9 @@ final class HCaptchaVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(VerificationStatus::Failed, $result->status());
         self::assertSame(
@@ -161,7 +205,9 @@ final class HCaptchaVerifierTest extends TestCase
             ->once()
             ->andThrow(new HttpClientException('Network failure.'));
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -179,7 +225,9 @@ final class HCaptchaVerifierTest extends TestCase
     ): void {
         $this->expectResponse(new HttpResponse($statusCode, '{}'));
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -204,7 +252,9 @@ final class HCaptchaVerifierTest extends TestCase
     {
         $this->expectResponse(new HttpResponse(200, '{'));
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -223,6 +273,20 @@ final class HCaptchaVerifierTest extends TestCase
             $this->httpClient,
             new HCaptchaResponseParser(),
             new HCaptchaErrorMapper(),
+        );
+    }
+
+    private function request(
+        string $token,
+        ?string $remoteIp = null,
+        ?string $userAgent = null,
+        ?string $expectedAction = null,
+    ): CaptchaVerificationRequest {
+        return new CaptchaVerificationRequest(
+            $token,
+            $remoteIp,
+            $userAgent,
+            $expectedAction,
         );
     }
 

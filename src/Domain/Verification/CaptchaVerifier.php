@@ -11,7 +11,6 @@ interface CaptchaVerifier
     public function provider(): CaptchaProvider;
 
     public function verify(
-        string $token,
-        ?string $remoteIp = null,
+        CaptchaVerificationRequest $request,
     ): VerificationResult;
 }

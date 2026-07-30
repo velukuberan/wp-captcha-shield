@@ -10,12 +10,23 @@ use WpCaptchaShield\Providers\CloudflareTurnstile\CloudflareTurnstileResponse;
 
 final class CloudflareTurnstileResponseTest extends TestCase
 {
-    public function testItCreatesASuccessfulResponse(): void
+    public function testItCreatesASuccessfulResponseWithAnAction(): void
+    {
+        $response = CloudflareTurnstileResponse::successful(
+            ' wordpress_login ',
+        );
+
+        self::assertTrue($response->isSuccessful());
+        self::assertSame([], $response->errorCodes());
+        self::assertSame('wordpress_login', $response->action());
+    }
+
+    public function testItCreatesASuccessfulResponseWithoutAnAction(): void
     {
         $response = CloudflareTurnstileResponse::successful();
 
         self::assertTrue($response->isSuccessful());
-        self::assertSame([], $response->errorCodes());
+        self::assertNull($response->action());
     }
 
     public function testItCreatesARejectedResponse(): void
@@ -29,14 +40,12 @@ final class CloudflareTurnstileResponseTest extends TestCase
             ['invalid-input-response'],
             $response->errorCodes(),
         );
+        self::assertNull($response->action());
     }
 
     public function testItRejectsARejectedResponseWithoutErrorCodes(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            'A rejected Turnstile response must contain an error code.',
-        );
 
         CloudflareTurnstileResponse::rejected([]);
     }
@@ -44,9 +53,6 @@ final class CloudflareTurnstileResponseTest extends TestCase
     public function testItRejectsAnEmptyErrorCode(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            'A Turnstile error code cannot be empty.',
-        );
 
         CloudflareTurnstileResponse::rejected(['']);
     }

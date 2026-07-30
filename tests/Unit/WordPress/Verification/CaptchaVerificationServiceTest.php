@@ -10,6 +10,7 @@ use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
@@ -29,46 +30,22 @@ final class CaptchaVerificationServiceTest extends TestCase
 
         $result = $service->verify(
             EffectiveCaptchaProvider::disabled(),
-            '',
+            new CaptchaVerificationRequest(''),
         );
 
         self::assertTrue($result->isSuccessful());
         self::assertNull($result->reason());
     }
 
-    public function testItDelegatesToTheResolvedVerifier(): void
+    public function testItDelegatesTheExactRequestToTheResolvedVerifier(): void
     {
-        $verifier = $this->verifierFor(
-            CaptchaProvider::CloudflareTurnstile,
-        );
-
-        $verifier
-            ->shouldReceive('verify')
-            ->once()
-            ->with(
-                'submitted-token',
-                '203.0.113.10',
-            )
-            ->andReturn(
-                VerificationResult::successful(),
-            );
-
-        $service = $this->serviceWith($verifier);
-
-        $result = $service->verify(
-            EffectiveCaptchaProvider::enabled(
-                CaptchaProvider::CloudflareTurnstile,
-            ),
+        $request = new CaptchaVerificationRequest(
             'submitted-token',
             '203.0.113.10',
+            'Mozilla/5.0',
+            'wordpress_login',
         );
 
-        self::assertTrue($result->isSuccessful());
-        self::assertNull($result->reason());
-    }
-
-    public function testItPassesNullRemoteIpToTheVerifier(): void
-    {
         $verifier = $this->verifierFor(
             CaptchaProvider::CloudflareTurnstile,
         );
@@ -76,10 +53,7 @@ final class CaptchaVerificationServiceTest extends TestCase
         $verifier
             ->shouldReceive('verify')
             ->once()
-            ->with(
-                'submitted-token',
-                null,
-            )
+            ->with($request)
             ->andReturn(
                 VerificationResult::successful(),
             );
@@ -90,14 +64,19 @@ final class CaptchaVerificationServiceTest extends TestCase
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::CloudflareTurnstile,
             ),
-            'submitted-token',
+            $request,
         );
 
         self::assertTrue($result->isSuccessful());
+        self::assertNull($result->reason());
     }
 
     public function testItReturnsTheProviderFailureUnchanged(): void
     {
+        $request = new CaptchaVerificationRequest(
+            'submitted-token',
+        );
+
         $verifier = $this->verifierFor(
             CaptchaProvider::CloudflareTurnstile,
         );
@@ -109,10 +88,7 @@ final class CaptchaVerificationServiceTest extends TestCase
         $verifier
             ->shouldReceive('verify')
             ->once()
-            ->with(
-                'submitted-token',
-                null,
-            )
+            ->with($request)
             ->andReturn($providerFailure);
 
         $service = $this->serviceWith($verifier);
@@ -121,7 +97,7 @@ final class CaptchaVerificationServiceTest extends TestCase
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::CloudflareTurnstile,
             ),
-            'submitted-token',
+            $request,
         );
 
         self::assertSame($providerFailure, $result);
@@ -145,7 +121,9 @@ final class CaptchaVerificationServiceTest extends TestCase
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::HCaptcha,
             ),
-            'submitted-token',
+            new CaptchaVerificationRequest(
+                'submitted-token',
+            ),
         );
 
         self::assertSame(
