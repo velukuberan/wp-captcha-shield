@@ -7,8 +7,9 @@ namespace WpCaptchaShield\WordPress\Verification;
 use LogicException;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
+use WpCaptchaShield\Domain\Verification\CaptchaVerifierProvider;
 
-final class CaptchaVerifierResolver
+final class CaptchaVerifierResolver implements CaptchaVerifierProvider
 {
     /**
      * @var array<string, CaptchaVerifier>
