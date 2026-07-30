@@ -6,14 +6,13 @@ namespace WpCaptchaShield\WordPress\Verification;
 
 use LogicException;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
-use WpCaptchaShield\Domain\Verification\CaptchaVerifierProvider;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
 
 final class CaptchaVerificationService
 {
     public function __construct(
-        private CaptchaVerifierProvider $verifierProvider,
+        private CaptchaVerifierResolver $verifierResolver,
     ) {
     }
 
@@ -35,7 +34,7 @@ final class CaptchaVerificationService
         }
 
         try {
-            $verifier = $this->verifierProvider->resolve(
+            $verifier = $this->verifierResolver->resolve(
                 $provider,
             );
         } catch (LogicException) {
