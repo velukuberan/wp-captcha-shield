@@ -7,6 +7,7 @@ namespace WpCaptchaShield\Tests\Unit\Providers\CloudflareTurnstile;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
@@ -81,6 +82,39 @@ final class CloudflareTurnstileVerifierTest extends TestCase
         );
     }
 
+    public function testItAcceptsATokenAtTheMaximumLength(): void
+    {
+        $token = str_repeat('a', 2048);
+
+        $this->httpClient
+            ->shouldReceive('post')
+            ->once()
+            ->with(
+                self::SITEVERIFY_URL,
+                [
+                    'timeout' => 10,
+                    'body' => [
+                        'secret' => 'secret-key',
+                        'response' => $token,
+                    ],
+                ],
+            )
+            ->andReturn(
+                new HttpResponse(
+                    200,
+                    '{"success":true}',
+                ),
+            );
+
+        $result = $this->verifier->verify(
+            $token,
+            'secret-key',
+        );
+
+        self::assertTrue($result->isSuccessful());
+        self::assertNull($result->reason());
+    }
+
     public function testItRejectsAMissingSecretWithoutCallingCloudflare(): void
     {
         $this->httpClient->shouldNotReceive('post');
@@ -131,6 +165,50 @@ final class CloudflareTurnstileVerifierTest extends TestCase
 
         self::assertTrue($result->isSuccessful());
         self::assertNull($result->reason());
+    }
+
+    #[DataProvider('emptyRemoteIpCases')]
+    public function testItOmitsAnEmptyRemoteIp(
+        ?string $remoteIp,
+    ): void {
+        $this->httpClient
+            ->shouldReceive('post')
+            ->once()
+            ->with(
+                self::SITEVERIFY_URL,
+                [
+                    'timeout' => 10,
+                    'body' => [
+                        'secret' => 'secret-key',
+                        'response' => 'submitted-token',
+                    ],
+                ],
+            )
+            ->andReturn(
+                new HttpResponse(
+                    200,
+                    '{"success":true}',
+                ),
+            );
+
+        $result = $this->verifier->verify(
+            'submitted-token',
+            'secret-key',
+            $remoteIp,
+        );
+
+        self::assertTrue($result->isSuccessful());
+        self::assertNull($result->reason());
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function emptyRemoteIpCases(): iterable
+    {
+        yield 'null' => [null];
+        yield 'empty string' => [''];
+        yield 'whitespace' => ['   '];
     }
 
     public function testItMapsACloudflareRejection(): void
