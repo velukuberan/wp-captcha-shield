@@ -8,6 +8,7 @@ use JsonException;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
+use WpCaptchaShield\Domain\Http\HttpResponse;
 use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
@@ -39,6 +40,41 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
     public function verify(
         CaptchaVerificationRequest $request,
     ): VerificationResult {
+        $inputFailure = $this->validateRequest($request);
+
+        if ($inputFailure !== null) {
+            return $inputFailure;
+        }
+
+        try {
+            $response = $this->sendAssessment($request);
+        } catch (HttpClientException) {
+            return VerificationResult::unavailable(
+                VerificationFailureReason::NetworkFailure,
+            );
+        } catch (JsonException) {
+            return VerificationResult::failed(
+                VerificationFailureReason::InvalidToken,
+            );
+        }
+
+        $statusFailure = GoogleRecaptchaHttpStatusMapper::map(
+            $response->statusCode(),
+        );
+
+        if ($statusFailure !== null) {
+            return $statusFailure;
+        }
+
+        return $this->evaluateAssessment(
+            $response->body(),
+            $request,
+        );
+    }
+
+    private function validateRequest(
+        CaptchaVerificationRequest $request,
+    ): ?VerificationResult {
         $configurationFailure = $this->validateConfiguration();
 
         if ($configurationFailure !== null) {
@@ -51,52 +87,52 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
             );
         }
 
-        try {
-            $response = $this->httpClient->post(
-                $this->assessmentUrl(),
-                [
-                    'timeout' => self::REQUEST_TIMEOUT_SECONDS,
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                    ],
-                    'body' => $this->requestBody($request),
-                ],
-            );
-        } catch (HttpClientException) {
-            return VerificationResult::unavailable(
-                VerificationFailureReason::NetworkFailure,
-            );
-        } catch (JsonException) {
-            return VerificationResult::failed(
-                VerificationFailureReason::InvalidToken,
-            );
-        }
+        return null;
+    }
 
-        if (
-            $response->statusCode() >= 400
-            && $response->statusCode() < 500
-            && !in_array(
-                $response->statusCode(),
-                [408, 429],
-                true,
-            )
-        ) {
-            return VerificationResult::misconfigured(
+    private function validateConfiguration(): ?VerificationResult
+    {
+        return match (true) {
+            trim($this->projectId) === '',
+            trim($this->apiKey) === '',
+            trim($this->siteKey) === '' =>
+            VerificationResult::misconfigured(
+                VerificationFailureReason::MissingConfiguration,
+            ),
+            $this->minimumScore < 0.0,
+            $this->minimumScore > 1.0 =>
+            VerificationResult::misconfigured(
                 VerificationFailureReason::InvalidConfiguration,
-            );
-        }
+            ),
+            default => null,
+        };
+    }
 
-        if (
-            $response->statusCode() < 200
-            || $response->statusCode() >= 300
-        ) {
-            return VerificationResult::unavailable(
-                VerificationFailureReason::NetworkFailure,
-            );
-        }
+    /**
+     * @throws HttpClientException
+     * @throws JsonException
+     */
+    private function sendAssessment(
+        CaptchaVerificationRequest $request,
+    ): HttpResponse {
+        return $this->httpClient->post(
+            $this->assessmentUrl(),
+            [
+                'timeout' => self::REQUEST_TIMEOUT_SECONDS,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'body' => $this->requestBody($request),
+            ],
+        );
+    }
 
+    private function evaluateAssessment(
+        string $responseBody,
+        CaptchaVerificationRequest $request,
+    ): VerificationResult {
         $assessment = $this->assessmentParser->parse(
-            $response->body(),
+            $responseBody,
         );
 
         if ($assessment === null) {
@@ -106,21 +142,10 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
         }
 
         if (!$assessment->isValid()) {
-            $invalidReason = $assessment->invalidReason();
-
-            if ($invalidReason === null) {
-                return VerificationResult::unavailable(
-                    VerificationFailureReason::MalformedResponse,
-                );
-            }
-
-            return $this->errorMapper->map($invalidReason);
+            return $this->mapInvalidAssessment($assessment);
         }
 
-        if (
-            $request->expectedAction() !== null
-            && $assessment->action() !== $request->expectedAction()
-        ) {
+        if (!$this->hasExpectedAction($assessment, $request)) {
             return VerificationResult::failed(
                 VerificationFailureReason::ProviderRejected,
             );
@@ -143,22 +168,26 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
         return VerificationResult::successful();
     }
 
-    private function validateConfiguration(): ?VerificationResult
-    {
-        return match (true) {
-            trim($this->projectId) === '',
-            trim($this->apiKey) === '',
-            trim($this->siteKey) === '' =>
-            VerificationResult::misconfigured(
-                VerificationFailureReason::MissingConfiguration,
-            ),
-            $this->minimumScore < 0.0,
-            $this->minimumScore > 1.0 =>
-            VerificationResult::misconfigured(
-                VerificationFailureReason::InvalidConfiguration,
-            ),
-            default => null,
-        };
+    private function mapInvalidAssessment(
+        GoogleRecaptchaAssessment $assessment,
+    ): VerificationResult {
+        $invalidReason = $assessment->invalidReason();
+
+        if ($invalidReason === null) {
+            return VerificationResult::unavailable(
+                VerificationFailureReason::MalformedResponse,
+            );
+        }
+
+        return $this->errorMapper->map($invalidReason);
+    }
+
+    private function hasExpectedAction(
+        GoogleRecaptchaAssessment $assessment,
+        CaptchaVerificationRequest $request,
+    ): bool {
+        return $request->expectedAction() === null
+            || $assessment->action() === $request->expectedAction();
     }
 
     private function assessmentUrl(): string
