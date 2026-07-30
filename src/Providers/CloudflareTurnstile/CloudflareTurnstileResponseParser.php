@@ -30,21 +30,36 @@ final class CloudflareTurnstileResponseParser
             return null;
         }
 
-        $errorCodes = $this->extractErrorCodes($payload);
-
         if ($payload['success']) {
-            if ($errorCodes === null || $errorCodes !== []) {
-                return null;
-            }
-
-            return CloudflareTurnstileResponse::successful();
+            return $this->parseSuccessfulResponse($payload);
         }
+
+        $errorCodes = $this->extractErrorCodes($payload);
 
         if ($errorCodes === null || $errorCodes === []) {
             return null;
         }
 
         return CloudflareTurnstileResponse::rejected($errorCodes);
+    }
+
+    /**
+     * @param array<mixed> $payload
+     */
+    private function parseSuccessfulResponse(
+        array $payload,
+    ): ?CloudflareTurnstileResponse {
+        if (!array_key_exists('error-codes', $payload)) {
+            return CloudflareTurnstileResponse::successful();
+        }
+
+        $errorCodes = $this->extractErrorCodes($payload);
+
+        if ($errorCodes !== []) {
+            return null;
+        }
+
+        return CloudflareTurnstileResponse::successful();
     }
 
     /**
