@@ -21,6 +21,7 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
     private const MAXIMUM_TOKEN_LENGTH = 2048;
 
     public function __construct(
+        private string $secretKey,
         private HttpClient $httpClient,
         private CloudflareTurnstileResponseParser $responseParser,
         private CloudflareTurnstileErrorMapper $errorMapper,
@@ -34,13 +35,15 @@ final class CloudflareTurnstileVerifier implements CaptchaVerifier
 
     public function verify(
         string $token,
-        string $secretKey,
         ?string $remoteIp = null,
     ): VerificationResult {
         $token = trim($token);
-        $secretKey = trim($secretKey);
+        $secretKey = trim($this->secretKey);
 
-        $inputFailure = $this->validateInput($token, $secretKey);
+        $inputFailure = $this->validateInput(
+            $token,
+            $secretKey,
+        );
 
         if ($inputFailure !== null) {
             return $inputFailure;

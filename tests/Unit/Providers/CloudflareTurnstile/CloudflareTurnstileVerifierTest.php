@@ -38,11 +38,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
         $httpClient = Mockery::mock(HttpClient::class);
 
         $this->httpClient = $httpClient;
-        $this->verifier = new CloudflareTurnstileVerifier(
-            $this->httpClient,
-            new CloudflareTurnstileResponseParser(),
-            new CloudflareTurnstileErrorMapper(),
-        );
+        $this->verifier = $this->createVerifier('secret-key');
     }
 
     public function testItIdentifiesItsProvider(): void
@@ -57,10 +53,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->verifier->verify(
-            '   ',
-            'secret-key',
-        );
+        $result = $this->verifier->verify('   ');
 
         self::assertSame(
             VerificationStatus::Failed,
@@ -78,7 +71,6 @@ final class CloudflareTurnstileVerifierTest extends TestCase
 
         $result = $this->verifier->verify(
             str_repeat('a', 2049),
-            'secret-key',
         );
 
         self::assertSame(
@@ -115,10 +107,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
                 ),
             );
 
-        $result = $this->verifier->verify(
-            $token,
-            'secret-key',
-        );
+        $result = $this->verifier->verify($token);
 
         self::assertTrue($result->isSuccessful());
         self::assertNull($result->reason());
@@ -128,10 +117,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->verifier->verify(
-            'submitted-token',
-            '   ',
-        );
+        $verifier = $this->createVerifier('   ');
+
+        $result = $verifier->verify('submitted-token');
 
         self::assertSame(
             VerificationStatus::Misconfigured,
@@ -168,7 +156,6 @@ final class CloudflareTurnstileVerifierTest extends TestCase
 
         $result = $this->verifier->verify(
             'submitted-token',
-            'secret-key',
             ' 203.0.113.10 ',
         );
 
@@ -202,7 +189,6 @@ final class CloudflareTurnstileVerifierTest extends TestCase
 
         $result = $this->verifier->verify(
             'submitted-token',
-            'secret-key',
             $remoteIp,
         );
 
@@ -229,10 +215,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify(
-            'submitted-token',
-            'secret-key',
-        );
+        $result = $this->verifier->verify('submitted-token');
 
         self::assertSame(
             VerificationStatus::Failed,
@@ -255,10 +238,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
                 ),
             );
 
-        $result = $this->verifier->verify(
-            'submitted-token',
-            'secret-key',
-        );
+        $result = $this->verifier->verify('submitted-token');
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -279,10 +259,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify(
-            'submitted-token',
-            'secret-key',
-        );
+        $result = $this->verifier->verify('submitted-token');
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -303,10 +280,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify(
-            'submitted-token',
-            'secret-key',
-        );
+        $result = $this->verifier->verify('submitted-token');
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -315,6 +289,17 @@ final class CloudflareTurnstileVerifierTest extends TestCase
         self::assertSame(
             VerificationFailureReason::MalformedResponse,
             $result->reason(),
+        );
+    }
+
+    private function createVerifier(
+        string $secretKey,
+    ): CloudflareTurnstileVerifier {
+        return new CloudflareTurnstileVerifier(
+            $secretKey,
+            $this->httpClient,
+            new CloudflareTurnstileResponseParser(),
+            new CloudflareTurnstileErrorMapper(),
         );
     }
 
