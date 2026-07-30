@@ -6,6 +6,7 @@ namespace WpCaptchaShield\WordPress\Verification;
 
 use LogicException;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
 
@@ -18,8 +19,7 @@ final class CaptchaVerificationService
 
     public function verify(
         EffectiveCaptchaProvider $effectiveProvider,
-        string $token,
-        ?string $remoteIp = null,
+        CaptchaVerificationRequest $request,
     ): VerificationResult {
         if ($effectiveProvider->isDisabled()) {
             return VerificationResult::successful();
@@ -43,9 +43,6 @@ final class CaptchaVerificationService
             );
         }
 
-        return $verifier->verify(
-            $token,
-            $remoteIp,
-        );
+        return $verifier->verify($request);
     }
 }

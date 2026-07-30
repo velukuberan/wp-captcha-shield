@@ -13,6 +13,7 @@ use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
 use WpCaptchaShield\Domain\Http\HttpResponse;
+use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationStatus;
 use WpCaptchaShield\Providers\CloudflareTurnstile\CloudflareTurnstileErrorMapper;
@@ -53,7 +54,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->verifier->verify('   ');
+        $result = $this->verifier->verify(
+            $this->request('   '),
+        );
 
         self::assertSame(
             VerificationStatus::Failed,
@@ -70,7 +73,7 @@ final class CloudflareTurnstileVerifierTest extends TestCase
         $this->httpClient->shouldNotReceive('post');
 
         $result = $this->verifier->verify(
-            str_repeat('a', 2049),
+            $this->request(str_repeat('a', 2049)),
         );
 
         self::assertSame(
@@ -87,27 +90,17 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     {
         $token = str_repeat('a', 2048);
 
-        $this->httpClient
-            ->shouldReceive('post')
-            ->once()
-            ->with(
-                self::SITEVERIFY_URL,
-                [
-                    'timeout' => 10,
-                    'body' => [
-                        'secret' => 'secret-key',
-                        'response' => $token,
-                    ],
-                ],
-            )
-            ->andReturn(
-                new HttpResponse(
-                    200,
-                    '{"success":true}',
-                ),
-            );
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => $token,
+            ],
+            '{"success":true}',
+        );
 
-        $result = $this->verifier->verify($token);
+        $result = $this->verifier->verify(
+            $this->request($token),
+        );
 
         self::assertTrue($result->isSuccessful());
         self::assertNull($result->reason());
@@ -117,9 +110,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $verifier = $this->createVerifier('   ');
-
-        $result = $verifier->verify('submitted-token');
+        $result = $this->createVerifier('   ')->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Misconfigured,
@@ -133,30 +126,20 @@ final class CloudflareTurnstileVerifierTest extends TestCase
 
     public function testItReturnsSuccessfulForAValidCloudflareResponse(): void
     {
-        $this->httpClient
-            ->shouldReceive('post')
-            ->once()
-            ->with(
-                self::SITEVERIFY_URL,
-                [
-                    'timeout' => 10,
-                    'body' => [
-                        'secret' => 'secret-key',
-                        'response' => 'submitted-token',
-                        'remoteip' => '203.0.113.10',
-                    ],
-                ],
-            )
-            ->andReturn(
-                new HttpResponse(
-                    200,
-                    '{"success":true,"error-codes":[]}',
-                ),
-            );
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+                'remoteip' => '203.0.113.10',
+            ],
+            '{"success":true,"error-codes":[]}',
+        );
 
         $result = $this->verifier->verify(
-            'submitted-token',
-            ' 203.0.113.10 ',
+            $this->request(
+                'submitted-token',
+                ' 203.0.113.10 ',
+            ),
         );
 
         self::assertTrue($result->isSuccessful());
@@ -167,29 +150,19 @@ final class CloudflareTurnstileVerifierTest extends TestCase
     public function testItOmitsAnEmptyRemoteIp(
         ?string $remoteIp,
     ): void {
-        $this->httpClient
-            ->shouldReceive('post')
-            ->once()
-            ->with(
-                self::SITEVERIFY_URL,
-                [
-                    'timeout' => 10,
-                    'body' => [
-                        'secret' => 'secret-key',
-                        'response' => 'submitted-token',
-                    ],
-                ],
-            )
-            ->andReturn(
-                new HttpResponse(
-                    200,
-                    '{"success":true}',
-                ),
-            );
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+            ],
+            '{"success":true}',
+        );
 
         $result = $this->verifier->verify(
-            'submitted-token',
-            $remoteIp,
+            $this->request(
+                'submitted-token',
+                $remoteIp,
+            ),
         );
 
         self::assertTrue($result->isSuccessful());
@@ -206,6 +179,97 @@ final class CloudflareTurnstileVerifierTest extends TestCase
         yield 'whitespace' => ['   '];
     }
 
+    public function testItAcceptsAMatchingAction(): void
+    {
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+            ],
+            '{"success":true,"action":"wordpress_login"}',
+        );
+
+        $result = $this->verifier->verify(
+            $this->request(
+                'submitted-token',
+                expectedAction: 'wordpress_login',
+            ),
+        );
+
+        self::assertTrue($result->isSuccessful());
+    }
+
+    public function testItRejectsAMismatchedAction(): void
+    {
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+            ],
+            '{"success":true,"action":"comment"}',
+        );
+
+        $result = $this->verifier->verify(
+            $this->request(
+                'submitted-token',
+                expectedAction: 'wordpress_login',
+            ),
+        );
+
+        self::assertSame(
+            VerificationStatus::Failed,
+            $result->status(),
+        );
+        self::assertSame(
+            VerificationFailureReason::ProviderRejected,
+            $result->reason(),
+        );
+    }
+
+    public function testItRejectsAMissingReturnedActionWhenExpected(): void
+    {
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+            ],
+            '{"success":true}',
+        );
+
+        $result = $this->verifier->verify(
+            $this->request(
+                'submitted-token',
+                expectedAction: 'wordpress_login',
+            ),
+        );
+
+        self::assertSame(
+            VerificationStatus::Failed,
+            $result->status(),
+        );
+        self::assertSame(
+            VerificationFailureReason::ProviderRejected,
+            $result->reason(),
+        );
+    }
+
+    public function testItDoesNotRequireAnActionByDefault(): void
+    {
+        $this->expectRequest(
+            [
+                'secret' => 'secret-key',
+                'response' => 'submitted-token',
+            ],
+            '{"success":true,"action":"comment"}',
+        );
+
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
+
+        self::assertTrue($result->isSuccessful());
+    }
+
     public function testItMapsACloudflareRejection(): void
     {
         $this->expectResponse(
@@ -215,7 +279,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Failed,
@@ -238,7 +304,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
                 ),
             );
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -259,7 +327,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -280,7 +350,9 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             ),
         );
 
-        $result = $this->verifier->verify('submitted-token');
+        $result = $this->verifier->verify(
+            $this->request('submitted-token'),
+        );
 
         self::assertSame(
             VerificationStatus::Unavailable,
@@ -301,6 +373,40 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             new CloudflareTurnstileResponseParser(),
             new CloudflareTurnstileErrorMapper(),
         );
+    }
+
+    private function request(
+        string $token,
+        ?string $remoteIp = null,
+        ?string $userAgent = null,
+        ?string $expectedAction = null,
+    ): CaptchaVerificationRequest {
+        return new CaptchaVerificationRequest(
+            $token,
+            $remoteIp,
+            $userAgent,
+            $expectedAction,
+        );
+    }
+
+    /**
+     * @param array<string, string> $body
+     */
+    private function expectRequest(
+        array $body,
+        string $responseBody,
+    ): void {
+        $this->httpClient
+            ->shouldReceive('post')
+            ->once()
+            ->with(
+                self::SITEVERIFY_URL,
+                [
+                    'timeout' => 10,
+                    'body' => $body,
+                ],
+            )
+            ->andReturn(new HttpResponse(200, $responseBody));
     }
 
     private function expectResponse(HttpResponse $response): void
