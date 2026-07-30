@@ -12,7 +12,6 @@ interface CaptchaVerifier
 
     public function verify(
         string $token,
-        string $secretKey,
         ?string $remoteIp = null,
     ): VerificationResult;
 }
