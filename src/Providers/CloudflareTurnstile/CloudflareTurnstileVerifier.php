@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace WpCaptchaShield\Providers\CloudflareTurnstile;
 
+use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
+use WpCaptchaShield\Domain\Verification\CaptchaVerifier;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
 
-final class CloudflareTurnstileVerifier
+final class CloudflareTurnstileVerifier implements CaptchaVerifier
 {
     private const SITEVERIFY_URL =
         'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -23,6 +25,11 @@ final class CloudflareTurnstileVerifier
         private CloudflareTurnstileResponseParser $responseParser,
         private CloudflareTurnstileErrorMapper $errorMapper,
     ) {
+    }
+
+    public function provider(): CaptchaProvider
+    {
+        return CaptchaProvider::CloudflareTurnstile;
     }
 
     public function verify(
@@ -72,15 +79,15 @@ final class CloudflareTurnstileVerifier
 
         return match (true) {
             $providerResponse === null =>
-                VerificationResult::unavailable(
-                    VerificationFailureReason::MalformedResponse,
-                ),
+            VerificationResult::unavailable(
+                VerificationFailureReason::MalformedResponse,
+            ),
             $providerResponse->isSuccessful() =>
-                VerificationResult::successful(),
+            VerificationResult::successful(),
             default =>
-                $this->errorMapper->map(
-                    $providerResponse->errorCodes(),
-                ),
+            $this->errorMapper->map(
+                $providerResponse->errorCodes(),
+            ),
         };
     }
 
@@ -93,9 +100,9 @@ final class CloudflareTurnstileVerifier
                 VerificationFailureReason::MissingToken,
             ),
             strlen($token) > self::MAXIMUM_TOKEN_LENGTH =>
-                VerificationResult::failed(
-                    VerificationFailureReason::InvalidToken,
-                ),
+            VerificationResult::failed(
+                VerificationFailureReason::InvalidToken,
+            ),
             $secretKey === '' => VerificationResult::misconfigured(
                 VerificationFailureReason::MissingConfiguration,
             ),

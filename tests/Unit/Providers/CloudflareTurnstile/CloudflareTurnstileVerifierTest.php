@@ -9,6 +9,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
 use WpCaptchaShield\Domain\Http\HttpResponse;
@@ -41,6 +42,14 @@ final class CloudflareTurnstileVerifierTest extends TestCase
             $this->httpClient,
             new CloudflareTurnstileResponseParser(),
             new CloudflareTurnstileErrorMapper(),
+        );
+    }
+
+    public function testItIdentifiesItsProvider(): void
+    {
+        self::assertSame(
+            CaptchaProvider::CloudflareTurnstile,
+            $this->verifier->provider(),
         );
     }
 
