@@ -85,7 +85,10 @@ A test-first mindset is required; ceremony is not.
 ## 9. Mockery
 
 - Use Mockery for collaborators and external boundaries.
-- Prefer mocking interfaces over concrete internal details.
+- Keep production design independent of testing-library limitations.
+- Do not introduce interfaces, remove `final`, alter visibility, or change production architecture solely to make tests or mocking tools easier.
+- In tests, use real final collaborators and mock only genuine architectural interfaces, external systems, or infrastructure boundaries.
+- Mock genuine interfaces and external boundaries; do not introduce an interface solely to enable mocking.
 - Prefer simple fakes when clearer.
 - Never mock the class under test.
 - Avoid over-specifying internal calls.
