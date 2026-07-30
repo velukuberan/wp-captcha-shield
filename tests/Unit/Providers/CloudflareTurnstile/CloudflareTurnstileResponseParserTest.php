@@ -30,6 +30,17 @@ final class CloudflareTurnstileResponseParserTest extends TestCase
         self::assertSame([], $response->errorCodes());
     }
 
+    public function testItParsesASuccessfulResponseWithoutErrorCodes(): void
+    {
+        $response = $this->parser->parse(
+            '{"success":true}',
+        );
+
+        self::assertNotNull($response);
+        self::assertTrue($response->isSuccessful());
+        self::assertSame([], $response->errorCodes());
+    }
+
     public function testItParsesARejectedResponse(): void
     {
         $response = $this->parser->parse(
@@ -74,12 +85,20 @@ final class CloudflareTurnstileResponseParserTest extends TestCase
             '{"success":"true","error-codes":[]}',
         ];
 
-        yield 'success without error codes' => [
-            '{"success":true}',
-        ];
-
         yield 'success with errors' => [
             '{"success":true,"error-codes":["internal-error"]}',
+        ];
+
+        yield 'success with non-array errors' => [
+            '{"success":true,"error-codes":"internal-error"}',
+        ];
+
+        yield 'success with non-string error' => [
+            '{"success":true,"error-codes":[123]}',
+        ];
+
+        yield 'success with empty error' => [
+            '{"success":true,"error-codes":[""]}',
         ];
 
         yield 'failure without errors' => [
@@ -90,15 +109,15 @@ final class CloudflareTurnstileResponseParserTest extends TestCase
             '{"success":false,"error-codes":[]}',
         ];
 
-        yield 'non-array errors' => [
+        yield 'failure with non-array errors' => [
             '{"success":false,"error-codes":"bad-request"}',
         ];
 
-        yield 'non-string error' => [
+        yield 'failure with non-string error' => [
             '{"success":false,"error-codes":[123]}',
         ];
 
-        yield 'empty error' => [
+        yield 'failure with empty error' => [
             '{"success":false,"error-codes":[""]}',
         ];
     }
