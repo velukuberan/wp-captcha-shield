@@ -6,6 +6,7 @@ namespace WpCaptchaShield\WordPress\Admin;
 
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\FormCaptchaSetting;
+use WpCaptchaShield\Domain\Configuration\Provider\CloudflareTurnstileMode;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
@@ -15,6 +16,9 @@ final class SettingsPage
     public const SAVE_ACTION = 'wp_captcha_shield_save_settings';
     public const NONCE_ACTION = 'wp_captcha_shield_save_settings';
     public const NONCE_NAME = 'wp_captcha_shield_nonce';
+
+    private const TURNSTILE_PRIVACY_ADDENDUM_URL =
+        'https://www.cloudflare.com/turnstile-privacy-policy/';
 
     /**
      * @param array<string, string> $forms Form ID => translated label.
@@ -123,7 +127,11 @@ final class SettingsPage
             <?php $this->renderConfigurationWarnings($settings); ?>
 
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-                <input type="hidden" name="action" value="<?php echo esc_attr(self::SAVE_ACTION); ?>">
+                <input
+                    type="hidden"
+                    name="action"
+                    value="<?php echo esc_attr(self::SAVE_ACTION); ?>"
+                >
                 <?php wp_nonce_field(self::NONCE_ACTION, self::NONCE_NAME); ?>
 
                 <?php $this->renderGeneralSection($settings); ?>
@@ -149,11 +157,17 @@ final class SettingsPage
             <tr>
                 <th scope="row">
                     <label for="wp-captcha-shield-global-provider">
-                        <?php echo esc_html__('Default provider', 'wp-captcha-shield'); ?>
+                        <?php echo esc_html__(
+                            'Default provider',
+                            'wp-captcha-shield',
+                        ); ?>
                     </label>
                 </th>
                 <td>
-                    <select id="wp-captcha-shield-global-provider" name="wp_captcha_shield[global_provider]">
+                    <select
+                        id="wp-captcha-shield-global-provider"
+                        name="wp_captcha_shield[global_provider]"
+                    >
                         <?php $this->renderProviderOptions($selected, true); ?>
                     </select>
                 </td>
@@ -167,17 +181,32 @@ final class SettingsPage
                 ?>
                 <tr>
                     <th scope="row">
-                        <label for="<?php echo esc_attr('wp-captcha-shield-form-' . $formId); ?>">
+                        <label
+                            for="<?php echo esc_attr('wp-captcha-shield-form-' . $formId); ?>"
+                        >
                             <?php echo esc_html($label); ?>
                         </label>
                     </th>
                     <td>
-                        <select id="<?php echo esc_attr('wp-captcha-shield-form-' . $formId); ?>"
-                            name="<?php echo esc_attr('wp_captcha_shield[forms][' . $formId . ']'); ?>">
-                            <option value="default" <?php selected($formValue, 'default'); ?>>
-                                <?php echo esc_html__('Use default', 'wp-captcha-shield'); ?>
+                        <select
+                            id="<?php echo esc_attr('wp-captcha-shield-form-' . $formId); ?>"
+                            name="<?php echo esc_attr('wp_captcha_shield[forms][' . $formId . ']'); ?>"
+                        >
+                            <option
+                                value="default"
+                                <?php selected($formValue, 'default'); ?>
+                            >
+                                <?php echo esc_html__(
+                                    'Use default',
+                                    'wp-captcha-shield',
+                                ); ?>
                             </option>
-                            <?php $this->renderProviderOptions($formValue, true); ?>
+                            <?php
+                            $this->renderProviderOptions(
+                                $formValue,
+                                true,
+                            );
+                            ?>
                         </select>
                     </td>
                 </tr>
@@ -191,32 +220,105 @@ final class SettingsPage
         $turnstile = $settings->turnstile();
         ?>
         <h2>
-            <?php echo esc_html__('Cloudflare Turnstile', 'wp-captcha-shield'); ?>
+            <?php echo esc_html__(
+                'Cloudflare Turnstile',
+                'wp-captcha-shield',
+            ); ?>
         </h2>
+
+        <p class="description">
+            <?php echo esc_html__(
+                'The widget mode is configured in your Cloudflare '
+                . 'Turnstile dashboard.',
+                'wp-captcha-shield',
+            ); ?>
+        </p>
+
+        <p class="description">
+            <?php echo esc_html__(
+                'Select the same mode here as the mode configured for this '
+                . 'site key. Changing this setting does not change the '
+                . 'widget mode in Cloudflare.',
+                'wp-captcha-shield',
+            ); ?>
+        </p>
+
         <table class="form-table" role="presentation">
-            <?php $this->renderTextField(
+            <?php
+            $this->renderTextField(
                 'turnstile-site-key',
                 __('Site key', 'wp-captcha-shield'),
                 'wp_captcha_shield[turnstile][site_key]',
                 $turnstile->siteKey(),
-            ); ?>
-            <?php $this->renderSecretField(
+            );
+            ?>
+
+            <?php
+            $this->renderSecretField(
                 'turnstile-secret-key',
                 __('Secret key', 'wp-captcha-shield'),
                 'wp_captcha_shield[turnstile][secret_key]',
                 $turnstile->secretKey() !== '',
-            ); ?>
-            <?php $this->renderSelectField(
+            );
+            ?>
+
+            <?php
+            $this->renderSelectField(
                 'turnstile-mode',
                 __('Mode', 'wp-captcha-shield'),
                 'wp_captcha_shield[turnstile][mode]',
                 $turnstile->mode()->value,
                 [
                     'managed' => __('Managed', 'wp-captcha-shield'),
-                    'non_interactive' => __('Non-Interactive', 'wp-captcha-shield'),
+                    'non_interactive' => __(
+                        'Non-Interactive',
+                        'wp-captcha-shield',
+                    ),
                     'invisible' => __('Invisible', 'wp-captcha-shield'),
                 ],
-            ); ?>
+            );
+            ?>
+
+            <?php if (
+                $turnstile->mode() === CloudflareTurnstileMode::Invisible
+):
+    ?>
+                <tr>
+                    <th scope="row"></th>
+                    <td>
+                        <div class="notice notice-warning inline">
+                            <p>
+                                <?php
+                                printf(
+                                    wp_kses(
+                                        __(
+                                            'Cloudflare requires websites '
+                                            . 'using Invisible Turnstile to '
+                                            . 'reference the '
+                                            . '<a href="%s" target="_blank" '
+                                            . 'rel="noopener noreferrer">'
+                                            . 'Turnstile Privacy Addendum'
+                                            . '</a> in their privacy policy.',
+                                            'wp-captcha-shield',
+                                        ),
+                                        [
+                                            'a' => [
+                                                'href' => true,
+                                                'target' => true,
+                                                'rel' => true,
+                                            ],
+                                        ],
+                                    ),
+                                    esc_url(
+                                        self::TURNSTILE_PRIVACY_ADDENDUM_URL,
+                                    ),
+                                );
+                                ?>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
         </table>
         <?php
     }
@@ -226,39 +328,58 @@ final class SettingsPage
         $google = $settings->googleRecaptcha();
         ?>
         <h2>
-            <?php echo esc_html__('Google reCAPTCHA', 'wp-captcha-shield'); ?>
+            <?php echo esc_html__(
+                'Google reCAPTCHA',
+                'wp-captcha-shield',
+            ); ?>
         </h2>
         <table class="form-table" role="presentation">
-            <?php $this->renderTextField(
+            <?php
+            $this->renderTextField(
                 'google-project-id',
                 __('Project ID', 'wp-captcha-shield'),
                 'wp_captcha_shield[google_recaptcha][project_id]',
                 $google->projectId(),
-            ); ?>
-            <?php $this->renderSecretField(
+            );
+            ?>
+
+            <?php
+            $this->renderSecretField(
                 'google-api-key',
                 __('API key', 'wp-captcha-shield'),
                 'wp_captcha_shield[google_recaptcha][api_key]',
                 $google->apiKey() !== '',
-            ); ?>
-            <?php $this->renderTextField(
+            );
+            ?>
+
+            <?php
+            $this->renderTextField(
                 'google-site-key',
                 __('Site key', 'wp-captcha-shield'),
                 'wp_captcha_shield[google_recaptcha][site_key]',
                 $google->siteKey(),
-            ); ?>
-            <?php $this->renderSelectField(
+            );
+            ?>
+
+            <?php
+            $this->renderSelectField(
                 'google-mode',
                 __('Mode', 'wp-captcha-shield'),
                 'wp_captcha_shield[google_recaptcha][mode]',
                 $google->mode()->value,
                 [
-                    'score_based' => __('Score-based', 'wp-captcha-shield'),
+                    'score_based' => __(
+                        'Score-based',
+                        'wp-captcha-shield',
+                    ),
                     'checkbox' => __('Checkbox', 'wp-captcha-shield'),
                     'invisible' => __('Invisible', 'wp-captcha-shield'),
                 ],
-            ); ?>
-            <?php $this->renderTextField(
+            );
+            ?>
+
+            <?php
+            $this->renderTextField(
                 'google-minimum-score',
                 __('Minimum score', 'wp-captcha-shield'),
                 'wp_captcha_shield[google_recaptcha][minimum_score]',
@@ -267,7 +388,8 @@ final class SettingsPage
                 '0',
                 '1',
                 '0.1',
-            ); ?>
+            );
+            ?>
         </table>
         <?php
     }
@@ -280,19 +402,26 @@ final class SettingsPage
             <?php echo esc_html__('hCaptcha', 'wp-captcha-shield'); ?>
         </h2>
         <table class="form-table" role="presentation">
-            <?php $this->renderTextField(
+            <?php
+            $this->renderTextField(
                 'hcaptcha-site-key',
                 __('Site key', 'wp-captcha-shield'),
                 'wp_captcha_shield[hcaptcha][site_key]',
                 $hCaptcha->siteKey(),
-            ); ?>
-            <?php $this->renderSecretField(
+            );
+            ?>
+
+            <?php
+            $this->renderSecretField(
                 'hcaptcha-secret-key',
                 __('Secret key', 'wp-captcha-shield'),
                 'wp_captcha_shield[hcaptcha][secret_key]',
                 $hCaptcha->secretKey() !== '',
-            ); ?>
-            <?php $this->renderSelectField(
+            );
+            ?>
+
+            <?php
+            $this->renderSelectField(
                 'hcaptcha-mode',
                 __('Display mode', 'wp-captcha-shield'),
                 'wp_captcha_shield[hcaptcha][mode]',
@@ -301,13 +430,15 @@ final class SettingsPage
                     'checkbox' => __('Checkbox', 'wp-captcha-shield'),
                     'invisible' => __('Invisible', 'wp-captcha-shield'),
                 ],
-            ); ?>
+            );
+            ?>
         </table>
         <?php
     }
 
-    private function renderConfigurationWarnings(PluginSettings $settings): void
-    {
+    private function renderConfigurationWarnings(
+        PluginSettings $settings,
+    ): void {
         $warnings = [];
 
         if (
@@ -358,8 +489,14 @@ final class SettingsPage
     ): void {
         if ($includeDisabled) {
             ?>
-            <option value="disabled" <?php selected($selectedValue, 'disabled'); ?>>
-                <?php echo esc_html__('Disabled', 'wp-captcha-shield'); ?>
+            <option
+                value="disabled"
+                <?php selected($selectedValue, 'disabled'); ?>
+            >
+                <?php echo esc_html__(
+                    'Disabled',
+                    'wp-captcha-shield',
+                ); ?>
             </option>
             <?php
         }
@@ -381,7 +518,10 @@ final class SettingsPage
 
         foreach ($providers as $value => $label) {
             ?>
-            <option value="<?php echo esc_attr($value); ?>" <?php selected($selectedValue, $value); ?>>
+            <option
+                value="<?php echo esc_attr($value); ?>"
+                <?php selected($selectedValue, $value); ?>
+            >
                 <?php echo esc_html($label); ?>
             </option>
             <?php
@@ -400,26 +540,28 @@ final class SettingsPage
     ): void {
         ?>
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($id); ?>">
+            <th scope="row">
+                <label for="<?php echo esc_attr($id); ?>">
                     <?php echo esc_html($label); ?>
-                </label></th>
+                </label>
+            </th>
             <td>
-            <input
-                class="regular-text"
-                type="<?php echo esc_attr($type); ?>"
-                id="<?php echo esc_attr($id); ?>"
-                name="<?php echo esc_attr($name); ?>"
-                value="<?php echo esc_attr($value); ?>"
-                    <?php if ($min !== null) : ?>
-                    min="<?php echo esc_attr($min); ?>"
+                <input
+                    class="regular-text"
+                    type="<?php echo esc_attr($type); ?>"
+                    id="<?php echo esc_attr($id); ?>"
+                    name="<?php echo esc_attr($name); ?>"
+                    value="<?php echo esc_attr($value); ?>"
+                    <?php if ($min !== null): ?>
+                        min="<?php echo esc_attr($min); ?>"
                     <?php endif; ?>
-                    <?php if ($max !== null) : ?>
-                    max="<?php echo esc_attr($max); ?>"
+                    <?php if ($max !== null): ?>
+                        max="<?php echo esc_attr($max); ?>"
                     <?php endif; ?>
-                    <?php if ($step !== null) : ?>
-                    step="<?php echo esc_attr($step); ?>"
+                    <?php if ($step !== null): ?>
+                        step="<?php echo esc_attr($step); ?>"
                     <?php endif; ?>
-            >
+                >
             </td>
         </tr>
         <?php
@@ -433,16 +575,25 @@ final class SettingsPage
     ): void {
         ?>
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($id); ?>">
+            <th scope="row">
+                <label for="<?php echo esc_attr($id); ?>">
                     <?php echo esc_html($label); ?>
-                </label></th>
+                </label>
+            </th>
             <td>
-                <input class="regular-text" type="password" id="<?php echo esc_attr($id); ?>"
-                    name="<?php echo esc_attr($name); ?>" value="" autocomplete="new-password">
+                <input
+                    class="regular-text"
+                    type="password"
+                    id="<?php echo esc_attr($id); ?>"
+                    name="<?php echo esc_attr($name); ?>"
+                    value=""
+                    autocomplete="new-password"
+                >
                 <?php if ($hasStoredValue): ?>
                     <p class="description">
                         <?php echo esc_html__(
-                            'A value is stored. Leave blank to keep it unchanged.',
+                            'A value is stored. Leave blank to keep it '
+                            . 'unchanged.',
                             'wp-captcha-shield',
                         ); ?>
                     </p>
@@ -464,13 +615,21 @@ final class SettingsPage
     ): void {
         ?>
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($id); ?>">
+            <th scope="row">
+                <label for="<?php echo esc_attr($id); ?>">
                     <?php echo esc_html($label); ?>
-                </label></th>
+                </label>
+            </th>
             <td>
-                <select id="<?php echo esc_attr($id); ?>" name="<?php echo esc_attr($name); ?>">
+                <select
+                    id="<?php echo esc_attr($id); ?>"
+                    name="<?php echo esc_attr($name); ?>"
+                >
                     <?php foreach ($options as $value => $optionLabel): ?>
-                        <option value="<?php echo esc_attr($value); ?>" <?php selected($selectedValue, $value); ?>>
+                        <option
+                            value="<?php echo esc_attr($value); ?>"
+                            <?php selected($selectedValue, $value); ?>
+                        >
                             <?php echo esc_html($optionLabel); ?>
                         </option>
                     <?php endforeach; ?>

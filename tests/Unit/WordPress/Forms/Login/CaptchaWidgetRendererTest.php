@@ -37,30 +37,10 @@ final class CaptchaWidgetRendererTest extends TestCase
 
     public function testItRendersTheNonInteractiveTurnstileWidget(): void
     {
-        $settings = new PluginSettings(
-            GlobalCaptchaSetting::disabled(),
-            [],
-            new TurnstileSettings(
-                'turnstile-site-key',
-                'turnstile-secret-key',
-                CloudflareTurnstileMode::NonInteractive,
-            ),
-            GoogleRecaptchaSettings::defaults(),
-            HCaptchaSettings::defaults(),
+        $output = $this->renderTurnstile(
+            CloudflareTurnstileMode::NonInteractive,
         );
 
-        ob_start();
-
-        (new CaptchaWidgetRenderer())->render(
-            EffectiveCaptchaProvider::enabled(
-                CaptchaProvider::CloudflareTurnstile,
-            ),
-            $settings,
-        );
-
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
         self::assertStringContainsString(
             'class="cf-turnstile"',
             $output,
@@ -81,5 +61,68 @@ final class CaptchaWidgetRendererTest extends TestCase
             'data-action="wordpress_login"',
             $output,
         );
+    }
+
+    public function testItRendersTheInvisibleTurnstileWidget(): void
+    {
+        $output = $this->renderTurnstile(
+            CloudflareTurnstileMode::Invisible,
+        );
+
+        self::assertStringContainsString(
+            'class="cf-turnstile"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-sitekey="turnstile-site-key"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-action="wordpress_login"',
+            $output,
+        );
+        self::assertStringNotContainsString(
+            'wp-captcha-shield-widget',
+            $output,
+        );
+        self::assertStringNotContainsString(
+            'data-size=',
+            $output,
+        );
+        self::assertStringNotContainsString(
+            'data-appearance=',
+            $output,
+        );
+    }
+
+    private function renderTurnstile(
+        CloudflareTurnstileMode $mode,
+    ): string {
+        $settings = new PluginSettings(
+            GlobalCaptchaSetting::disabled(),
+            [],
+            new TurnstileSettings(
+                'turnstile-site-key',
+                'turnstile-secret-key',
+                $mode,
+            ),
+            GoogleRecaptchaSettings::defaults(),
+            HCaptchaSettings::defaults(),
+        );
+
+        ob_start();
+
+        (new CaptchaWidgetRenderer())->render(
+            EffectiveCaptchaProvider::enabled(
+                CaptchaProvider::CloudflareTurnstile,
+            ),
+            $settings,
+        );
+
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+
+        return $output;
     }
 }
