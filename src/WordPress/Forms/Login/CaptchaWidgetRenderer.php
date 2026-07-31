@@ -6,6 +6,7 @@ namespace WpCaptchaShield\WordPress\Forms\Login;
 
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
+use WpCaptchaShield\Domain\Configuration\Provider\CloudflareTurnstileMode;
 use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 
@@ -69,6 +70,23 @@ final class CaptchaWidgetRenderer
         $provider = $effectiveProvider->provider();
 
         if ($provider === CaptchaProvider::CloudflareTurnstile) {
+            $turnstile = $settings->turnstile();
+
+            if ($turnstile->mode() === CloudflareTurnstileMode::NonInteractive) {
+                printf(
+                    '<div class="wp-captcha-shield-widget">'
+                    . '<div class="cf-turnstile" '
+                    . 'data-sitekey="%s" '
+                    . 'data-size="flexible" '
+                    . 'data-appearance="always" '
+                    . 'data-action="wordpress_login"></div>'
+                    . '</div>',
+                    esc_attr($turnstile->siteKey()),
+                );
+
+                return;
+            }
+
             printf(
                 '<div class="wp-captcha-shield-widget">'
                 . '<div class="cf-turnstile" '
@@ -76,7 +94,7 @@ final class CaptchaWidgetRenderer
                 . 'data-size="flexible" '
                 . 'data-action="wordpress_login"></div>'
                 . '</div>',
-                esc_attr($settings->turnstile()->siteKey()),
+                esc_attr($turnstile->siteKey()),
             );
 
             return;
