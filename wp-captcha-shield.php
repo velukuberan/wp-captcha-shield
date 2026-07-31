@@ -18,6 +18,11 @@
 
 declare(strict_types=1);
 
+use WpCaptchaShield\WordPress\Admin\SettingsInputMapper;
+use WpCaptchaShield\WordPress\Admin\SettingsPage;
+use WpCaptchaShield\WordPress\Admin\SettingsPageRegistrar;
+use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -28,3 +33,11 @@ define('WP_CAPTCHA_SHIELD_PATH', plugin_dir_path(__FILE__));
 define('WP_CAPTCHA_SHIELD_URL', plugin_dir_url(__FILE__));
 
 require_once WP_CAPTCHA_SHIELD_PATH . 'vendor/autoload.php';
+
+$settingsPage = new SettingsPage(
+    new WordPressSettingsRepository(),
+    new SettingsInputMapper(),
+);
+
+$settingsPageRegistrar = new SettingsPageRegistrar($settingsPage);
+$settingsPageRegistrar->registerHooks();
