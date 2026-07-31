@@ -1,11 +1,9 @@
 parameters:
-    # Start at level 6 for the complete plugin.
-    # Domain code can be moved toward the maximum level as it develops.
     level: 6
-
-    # Analyse as our floor, not the version we happen to run locally,
-    # so 8.2+ syntax that would break on 8.1 gets flagged here too.
     phpVersion: 80100
+
+    bootstrapFiles:
+        - tests/Support/phpstan-bootstrap.php
 
     paths:
         - src
@@ -14,7 +12,3 @@ parameters:
     excludePaths:
         - vendor/*
         - build/*
-
-    # phpstan-wordpress + phpstan-strict-rules are wired in automatically
-    # by phpstan/extension-installer — no manual includes needed.
-    # WordPress core stubs are provided by szepeviktor/phpstan-wordpress.

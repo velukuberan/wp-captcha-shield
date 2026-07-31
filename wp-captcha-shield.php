@@ -18,9 +18,17 @@
 
 declare(strict_types=1);
 
+use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProviderResolver;
 use WpCaptchaShield\WordPress\Admin\SettingsInputMapper;
 use WpCaptchaShield\WordPress\Admin\SettingsPage;
 use WpCaptchaShield\WordPress\Admin\SettingsPageRegistrar;
+use WpCaptchaShield\WordPress\Bootstrap\CaptchaServiceFactory;
+use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurationFactory;
+use WpCaptchaShield\WordPress\Forms\Login\CaptchaWidgetRenderer;
+use WpCaptchaShield\WordPress\Forms\Login\LoginFormIntegration;
+use WpCaptchaShield\WordPress\Forms\Login\LoginFormRegistrar;
+use WpCaptchaShield\WordPress\Forms\SupportedForms;
+use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
 
 if (!defined('ABSPATH')) {
@@ -34,10 +42,25 @@ define('WP_CAPTCHA_SHIELD_URL', plugin_dir_url(__FILE__));
 
 require_once WP_CAPTCHA_SHIELD_PATH . 'vendor/autoload.php';
 
+$settingsRepository = new WordPressSettingsRepository();
+$supportedForms = new SupportedForms();
+
 $settingsPage = new SettingsPage(
-    new WordPressSettingsRepository(),
+    $settingsRepository,
     new SettingsInputMapper(),
+    $supportedForms->labels(),
 );
 
 $settingsPageRegistrar = new SettingsPageRegistrar($settingsPage);
 $settingsPageRegistrar->registerHooks();
+
+$loginFormIntegration = new LoginFormIntegration(
+    $settingsRepository,
+    new EffectiveCaptchaProviderResolver(),
+    new CaptchaProviderConfigurationFactory(),
+    new CaptchaServiceFactory(new WordPressHttpClient()),
+    new CaptchaWidgetRenderer(),
+);
+
+$loginFormRegistrar = new LoginFormRegistrar($loginFormIntegration);
+$loginFormRegistrar->registerHooks();
