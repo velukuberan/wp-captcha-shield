@@ -72,7 +72,9 @@ final class CaptchaWidgetRenderer
             printf(
                 '<div class="wp-captcha-shield-widget">'
                 . '<div class="cf-turnstile" '
-                . 'data-sitekey="%s" data-size="flexible"></div>'
+                . 'data-sitekey="%s" '
+                . 'data-size="flexible" '
+                . 'data-action="wordpress_login"></div>'
                 . '</div>',
                 esc_attr($settings->turnstile()->siteKey()),
             );
