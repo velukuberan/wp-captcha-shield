@@ -72,6 +72,17 @@ final class CaptchaWidgetRenderer
         if ($provider === CaptchaProvider::CloudflareTurnstile) {
             $turnstile = $settings->turnstile();
 
+            if ($turnstile->mode() === CloudflareTurnstileMode::Invisible) {
+                printf(
+                    '<div class="cf-turnstile" '
+                    . 'data-sitekey="%s" '
+                    . 'data-action="wordpress_login"></div>',
+                    esc_attr($turnstile->siteKey()),
+                );
+
+                return;
+            }
+
             if ($turnstile->mode() === CloudflareTurnstileMode::NonInteractive) {
                 printf(
                     '<div class="wp-captcha-shield-widget">'
