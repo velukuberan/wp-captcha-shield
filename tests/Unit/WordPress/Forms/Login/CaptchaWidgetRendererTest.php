@@ -10,7 +10,8 @@ use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\GlobalCaptchaSetting;
-use WpCaptchaShield\Domain\Configuration\Provider\CloudflareTurnstileMode;
+use WpCaptchaShield\Tests\Support\WordPress\Forms\Captcha\RecordingCaptchaWidget;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Forms\Login\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Settings\GoogleRecaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\HCaptchaSettings;
@@ -25,7 +26,7 @@ final class CaptchaWidgetRendererTest extends TestCase
 
         Monkey\setUp();
 
-        Functions\when('esc_attr')->returnArg();
+        Functions\when('wp_enqueue_style')->justReturn(null);
     }
 
     protected function tearDown(): void
@@ -35,94 +36,72 @@ final class CaptchaWidgetRendererTest extends TestCase
         parent::tearDown();
     }
 
-    public function testItRendersTheNonInteractiveTurnstileWidget(): void
+    public function testItPassesTheLoginContextToTheResolvedWidget(): void
     {
-        $output = $this->renderTurnstile(
-            CloudflareTurnstileMode::NonInteractive,
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::CloudflareTurnstile,
+        );
+        $renderer = new CaptchaWidgetRenderer(
+            new CaptchaWidgetResolver([$widget]),
         );
 
-        self::assertStringContainsString(
-            'class="cf-turnstile"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-sitekey="turnstile-site-key"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-size="flexible"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-appearance="always"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-action="wordpress_login"',
-            $output,
-        );
-    }
-
-    public function testItRendersTheInvisibleTurnstileWidget(): void
-    {
-        $output = $this->renderTurnstile(
-            CloudflareTurnstileMode::Invisible,
-        );
-
-        self::assertStringContainsString(
-            'class="cf-turnstile"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-sitekey="turnstile-site-key"',
-            $output,
-        );
-        self::assertStringContainsString(
-            'data-action="wordpress_login"',
-            $output,
-        );
-        self::assertStringNotContainsString(
-            'wp-captcha-shield-widget',
-            $output,
-        );
-        self::assertStringNotContainsString(
-            'data-size=',
-            $output,
-        );
-        self::assertStringNotContainsString(
-            'data-appearance=',
-            $output,
-        );
-    }
-
-    private function renderTurnstile(
-        CloudflareTurnstileMode $mode,
-    ): string {
-        $settings = new PluginSettings(
-            GlobalCaptchaSetting::disabled(),
-            [],
-            new TurnstileSettings(
-                'turnstile-site-key',
-                'turnstile-secret-key',
-                $mode,
-            ),
-            GoogleRecaptchaSettings::defaults(),
-            HCaptchaSettings::defaults(),
-        );
-
-        ob_start();
-
-        (new CaptchaWidgetRenderer())->render(
+        $renderer->render(
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::CloudflareTurnstile,
             ),
-            $settings,
+            $this->settings(),
         );
 
-        $output = ob_get_clean();
+        self::assertSame('wordpress_login', $widget->action);
+        self::assertSame('loginform', $widget->formId);
+    }
 
-        self::assertIsString($output);
+    public function testItDoesNothingWhenCaptchaIsDisabled(): void
+    {
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::CloudflareTurnstile,
+        );
+        $renderer = new CaptchaWidgetRenderer(
+            new CaptchaWidgetResolver([$widget]),
+        );
 
-        return $output;
+        $renderer->render(
+            EffectiveCaptchaProvider::disabled(),
+            $this->settings(),
+        );
+
+        self::assertNull($widget->action);
+        self::assertNull($widget->formId);
+    }
+
+    public function testItGetsTheTokenFieldFromTheResolvedWidget(): void
+    {
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::HCaptcha,
+        );
+        $renderer = new CaptchaWidgetRenderer(
+            new CaptchaWidgetResolver([$widget]),
+        );
+
+        self::assertSame(
+            'recorded-token',
+            $renderer->tokenFieldName(
+                EffectiveCaptchaProvider::enabled(
+                    CaptchaProvider::HCaptcha,
+                ),
+                $this->settings(),
+            ),
+        );
+    }
+
+    private function settings(): PluginSettings
+    {
+        return new PluginSettings(
+            GlobalCaptchaSetting::disabled(),
+            [],
+            TurnstileSettings::defaults(),
+            GoogleRecaptchaSettings::defaults(),
+            HCaptchaSettings::defaults(),
+        );
     }
 }
