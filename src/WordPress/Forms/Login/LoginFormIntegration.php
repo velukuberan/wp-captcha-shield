@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpCaptchaShield\WordPress\Forms\Login;
 
 use WP_Error;
-use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProviderResolver;
 use WpCaptchaShield\Domain\Configuration\FormCaptchaSetting;
@@ -119,14 +118,10 @@ final class LoginFormIntegration
     private function submittedToken(
         EffectiveCaptchaProvider $effectiveProvider,
     ): string {
-        $provider = $effectiveProvider->provider();
-
-        $field = match ($provider) {
-            CaptchaProvider::CloudflareTurnstile => 'cf-turnstile-response',
-            CaptchaProvider::GoogleRecaptcha => $this->googleTokenField(),
-            CaptchaProvider::HCaptcha => 'h-captcha-response',
-            default => '',
-        };
+        $field = $this->widgetRenderer->tokenFieldName(
+            $effectiveProvider,
+            $this->settings(),
+        );
 
         if (
             $field === ''
@@ -142,13 +137,6 @@ final class LoginFormIntegration
     }
 
     // phpcs:enable WordPress.Security.NonceVerification.Missing
-
-    private function googleTokenField(): string
-    {
-        return $this->settings()->googleRecaptcha()->mode()->value === 'checkbox'
-            ? 'g-recaptcha-response'
-            : CaptchaWidgetRenderer::GOOGLE_TOKEN_FIELD;
-    }
 
     private function serverValue(string $key): ?string
     {

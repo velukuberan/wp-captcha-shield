@@ -24,6 +24,10 @@ use WpCaptchaShield\WordPress\Admin\SettingsPage;
 use WpCaptchaShield\WordPress\Admin\SettingsPageRegistrar;
 use WpCaptchaShield\WordPress\Bootstrap\CaptchaServiceFactory;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurationFactory;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
+use WpCaptchaShield\WordPress\Forms\Captcha\CloudflareTurnstileWidget;
+use WpCaptchaShield\WordPress\Forms\Captcha\GoogleRecaptchaWidget;
+use WpCaptchaShield\WordPress\Forms\Captcha\HCaptchaWidget;
 use WpCaptchaShield\WordPress\Forms\Login\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Login\LoginFormIntegration;
 use WpCaptchaShield\WordPress\Forms\Login\LoginFormRegistrar;
@@ -54,12 +58,18 @@ $settingsPage = new SettingsPage(
 $settingsPageRegistrar = new SettingsPageRegistrar($settingsPage);
 $settingsPageRegistrar->registerHooks();
 
+$captchaWidgetResolver = new CaptchaWidgetResolver([
+    new CloudflareTurnstileWidget(),
+    new GoogleRecaptchaWidget(),
+    new HCaptchaWidget(),
+]);
+
 $loginFormIntegration = new LoginFormIntegration(
     $settingsRepository,
     new EffectiveCaptchaProviderResolver(),
     new CaptchaProviderConfigurationFactory(),
     new CaptchaServiceFactory(new WordPressHttpClient()),
-    new CaptchaWidgetRenderer(),
+    new CaptchaWidgetRenderer($captchaWidgetResolver),
 );
 
 $loginFormRegistrar = new LoginFormRegistrar($loginFormIntegration);
