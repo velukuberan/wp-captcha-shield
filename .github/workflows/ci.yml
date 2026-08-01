@@ -69,3 +69,40 @@ jobs:
 
       - name: Run unit tests
         run: composer test:unit
+
+  coverage:
+    name: Code coverage — PHP 8.1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer
+          coverage: pcov
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Create coverage directory
+        run: mkdir -p coverage
+
+      - name: Generate coverage report
+        run: >
+          vendor/bin/phpunit
+          --testsuite=unit
+          --coverage-clover=coverage/clover.xml
+          --coverage-text
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: velukuberan/wp-captcha-shield
+          files: coverage/clover.xml
+          flags: unit
+          fail_ci_if_error: true
