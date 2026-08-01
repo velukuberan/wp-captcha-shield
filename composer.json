@@ -1,66 +1,68 @@
 {
-    "name": "velukuberan/wp-captcha-shield",
-    "description": "Protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers.",
-    "type": "wordpress-plugin",
-    "license": "GPL-3.0-or-later",
-    "require": {
-        "php": ">=8.1"
-    },
-    "require-dev": {
-        "brain/monkey": "^2.7",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-        "mockery/mockery": "^1.6",
-        "phpcompatibility/phpcompatibility-wp": "^2.1",
-        "phpstan/extension-installer": "^1.4",
-        "phpstan/phpstan": "^2.2",
-        "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^10.5",
-        "slevomat/coding-standard": "~8.15.0",
-        "squizlabs/php_codesniffer": "^3.13",
-        "szepeviktor/phpstan-wordpress": "^2.0",
-        "wp-coding-standards/wpcs": "^3.4"
-    },
-    "autoload": {
-        "psr-4": {
-            "WpCaptchaShield\\Domain\\": "src/Domain/",
-            "WpCaptchaShield\\Providers\\": "src/Providers/",
-            "WpCaptchaShield\\WordPress\\": "src/WordPress/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WpCaptchaShield\\Tests\\Support\\": "tests/Support/",
-            "WpCaptchaShield\\Tests\\Unit\\": "tests/Unit/",
-            "WpCaptchaShield\\Tests\\Integration\\": "tests/Integration/"
-        }
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true
-        }
-    },
-    "scripts": {
-        "lint": "phpcs",
-        "fix": "phpcbf",
-        "analyse": "phpstan analyse --memory-limit=1G",
-        "test": "phpunit",
-        "test:unit": "phpunit --testsuite=unit",
-        "test:integration": "phpunit --testsuite=integration",
-        "check": [
-            "@lint",
-            "@analyse",
-            "@test"
-        ]
-    },
-    "scripts-descriptions": {
-        "lint": "Check PHP coding standards.",
-        "fix": "Automatically fix supported coding-standard violations.",
-        "analyse": "Run PHPStan static analysis.",
-        "test": "Run the complete PHPUnit test suite.",
-        "test:unit": "Run the unit test suite.",
-        "test:integration": "Run the integration test suite.",
-        "check": "Run all required PHP quality checks."
+  "name": "velukuberan/wp-captcha-shield",
+  "description": "Protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers.",
+  "type": "wordpress-plugin",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "brain/monkey": "^2.7",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+    "mockery/mockery": "^1.6",
+    "phpcompatibility/phpcompatibility-wp": "^2.1",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan": "^2.2",
+    "phpstan/phpstan-strict-rules": "^2.0",
+    "phpunit/phpunit": "^10.5",
+    "slevomat/coding-standard": "~8.15.0",
+    "squizlabs/php_codesniffer": "^3.13",
+    "szepeviktor/phpstan-wordpress": "^2.0",
+    "wp-coding-standards/wpcs": "^3.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "WpCaptchaShield\\Domain\\": "src/Domain/",
+      "WpCaptchaShield\\Providers\\": "src/Providers/",
+      "WpCaptchaShield\\WordPress\\": "src/WordPress/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WpCaptchaShield\\Tests\\Support\\": "tests/Support/",
+      "WpCaptchaShield\\Tests\\Unit\\": "tests/Unit/",
+      "WpCaptchaShield\\Tests\\Integration\\": "tests/Integration/"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "scripts": {
+    "lint": "phpcs",
+    "fix": "phpcbf",
+    "analyse": "phpstan analyse --memory-limit=1G",
+    "test": "phpunit",
+    "test:unit": "phpunit --testsuite=unit",
+    "test:integration": "phpunit --testsuite=integration",
+    "test:coverage": "phpunit --testsuite=unit --coverage-clover=coverage/clover.xml --coverage-text",
+    "check": [
+      "@lint",
+      "@analyse",
+      "@test"
+    ]
+  },
+  "scripts-descriptions": {
+    "lint": "Check PHP coding standards.",
+    "fix": "Automatically fix supported coding-standard violations.",
+    "analyse": "Run PHPStan static analysis.",
+    "test": "Run the complete PHPUnit test suite.",
+    "test:unit": "Run the unit test suite.",
+    "test:integration": "Run the integration test suite.",
+    "test:coverage": "phpunit --testsuite=unit --coverage-clover=coverage/clover.xml --coverage-text",
+    "check": "Run all required PHP quality checks."
+  }
 }

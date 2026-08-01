@@ -111,7 +111,67 @@ A test-first mindset is required; ceremony is not.
 - Live Cloudflare, Google, and hCaptcha verification is tested manually.
 - E2E tests should not duplicate every unit test.
 
-## 12. Static analysis
+## 12. Code coverage
+
+Tools and reporting:
+
+- PHPUnit generates coverage reports.
+- PCOV is used for coverage collection in GitHub Actions.
+- Codecov receives the generated Clover XML report.
+- Production code under `src/` is included in coverage measurement.
+- Generated coverage output belongs under `coverage/`.
+- Generated coverage files must not be committed.
+
+Local coverage is run through:
+
+```text
+composer test:coverage
+```
+
+The command must generate:
+
+```text
+coverage/clover.xml
+```
+
+GitHub Actions coverage rules:
+
+- Coverage is collected in one dedicated job.
+- The coverage job runs on PHP 8.1, the minimum supported PHP version.
+- The PHP 8.1, 8.2, and 8.3 compatibility matrix runs without coverage instrumentation.
+- Coverage must not be generated independently by every PHP matrix job.
+- A failed coverage generation or Codecov upload fails the dedicated coverage job.
+- The Codecov token must be stored as the `CODECOV_TOKEN` GitHub Actions secret.
+- Tokens and credentials must never be committed to the repository.
+
+Codecov status rules:
+
+- Project coverage measures the complete measured codebase.
+- Project coverage is initially informational and does not block pull requests.
+- Patch coverage measures production lines changed by a pull request.
+- The initial patch-coverage target is 80%.
+- The initial patch-coverage threshold is 5%.
+- Coverage targets may be adjusted deliberately as the codebase and test suite mature.
+- Coverage configuration changes must not silently weaken existing expectations.
+
+Coverage interpretation:
+
+- Coverage is evidence that code executed during tests; it is not proof that behaviour is correct.
+- Do not add low-value tests merely to increase a percentage.
+- Do not test private implementation details solely to increase coverage.
+- Do not weaken encapsulation, remove `final`, alter visibility, or introduce interfaces solely for coverage.
+- Untested branches involving failures, malformed responses, provider errors, and security-sensitive behaviour must be reviewed deliberately.
+- Excluding production code from coverage requires a documented technical reason.
+- Coverage does not replace architecture review, PHPStan, PHPCS, integration tests, E2E tests, or manual provider verification.
+
+For new and changed behaviour:
+
+- Add tests for meaningful success, failure, and edge-case paths.
+- Review Codecov patch coverage on the pull request.
+- Investigate uncovered changed lines rather than accepting the percentage without review.
+- When a changed line is intentionally untested, document the reason in the pull request.
+
+## 13. Static analysis
 
 Required:
 
@@ -127,7 +187,7 @@ Rules:
 - Fix the underlying type problem whenever practical.
 - Configure WordPress support correctly instead of weakening analysis.
 
-## 13. Coding-standard enforcement
+## 14. Coding-standard enforcement
 
 Required:
 
@@ -144,27 +204,37 @@ Rules:
 - Do not enable every rule blindly.
 - Disabling a rule requires a clear reason.
 
-## 14. Quality commands
+## 15. Quality commands
 
 Composer should expose:
 
 ```text
 composer test
+composer test:unit
+composer test:integration
+composer test:coverage
 composer analyse
 composer lint
+composer fix
 composer check
 ```
 
 Expected responsibilities:
 
-- `test`: PHPUnit
+- `test`: complete PHPUnit test suite
+- `test:unit`: isolated unit test suite
+- `test:integration`: integration test suite
+- `test:coverage`: unit tests with Clover coverage output
 - `analyse`: PHPStan
 - `lint`: PHPCS
+- `fix`: automatically fix supported coding-standard violations
 - `check`: all required PHP quality checks
+
+The regular `check` command does not need to generate or upload coverage. Coverage runs separately because instrumentation adds execution overhead and Codecov upload belongs to CI rather than the normal local quality command.
 
 Node scripts may run Playwright and frontend checks.
 
-## 15. Completion criteria
+## 16. Completion criteria
 
 A change is complete only when:
 
@@ -175,4 +245,6 @@ A change is complete only when:
 - no unrelated files were changed;
 - strings are translatable;
 - input and output handling meet WordPress security requirements;
-- documentation is updated when behavior or configuration changes.
+- relevant changed production code has meaningful test coverage;
+- uncovered changed lines have been reviewed and justified where necessary;
+- documentation is updated when behavior, configuration, tooling, or development workflow changes.

@@ -226,6 +226,7 @@ Available quality commands:
 composer test
 composer test:unit
 composer test:integration
+composer test:coverage
 composer analyse
 composer lint
 composer fix
@@ -237,6 +238,7 @@ Command responsibilities:
 - `composer test` — run the configured PHP test suites;
 - `composer test:unit` — run isolated unit tests;
 - `composer test:integration` — run integration tests;
+- `composer test:coverage` — run unit tests and generate a Clover coverage report;
 - `composer analyse` — run PHPStan;
 - `composer lint` — run PHP_CodeSniffer;
 - `composer fix` — apply automatically fixable coding-standard changes;
@@ -244,7 +246,7 @@ Command responsibilities:
 
 The project follows a test-first workflow. New behaviour should be introduced with the smallest relevant test, followed by the minimum implementation and then refactoring while the tests remain green.
 
-See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing practices, static-analysis rules, and completion criteria.
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing practices, static-analysis rules, coverage expectations, and completion criteria.
 
 ## Testing strategy
 
@@ -260,6 +262,37 @@ The planned test coverage includes:
 - manual verification against live CAPTCHA providers.
 
 Automated tests must not call live CAPTCHA services or attempt to solve live CAPTCHA challenges.
+
+## Code coverage
+
+PHPUnit generates code-coverage data for production code under `src/`.
+
+Run unit-test coverage locally with:
+
+```bash
+composer test:coverage
+```
+
+The command generates:
+
+```text
+coverage/clover.xml
+```
+
+The `coverage/` directory contains generated output and must not be committed.
+
+GitHub Actions runs a dedicated coverage job on PHP 8.1, the project's minimum supported PHP version. The coverage job uses PCOV and uploads the Clover report to Codecov.
+
+The normal PHP 8.1, 8.2, and 8.3 test matrix continues to run without coverage instrumentation. This avoids generating duplicate coverage reports while preserving compatibility testing across supported PHP versions.
+
+Codecov reports two different measurements:
+
+- project coverage for the complete measured codebase;
+- patch coverage for lines changed by a pull request.
+
+Project coverage is initially informational. Patch coverage is used to identify newly introduced or changed production code that lacks meaningful tests.
+
+Coverage percentages do not replace behavioural testing, architecture review, static analysis, coding-standard checks, WordPress integration tests, or manual provider verification.
 
 ## Data cleanup
 
