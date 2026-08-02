@@ -25,6 +25,23 @@ final class HCaptchaWidgetTest extends TestCase
 
         Monkey\setUp();
         Functions\when('esc_attr')->returnArg();
+        Functions\when('sanitize_html_class')->returnArg();
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        if (!defined('WP_CAPTCHA_SHIELD_URL')) {
+            define(
+                'WP_CAPTCHA_SHIELD_URL',
+                'https://example.com/wp-content/plugins/wp-captcha-shield/',
+            );
+        }
+
+        if (!defined('WP_CAPTCHA_SHIELD_VERSION')) {
+            define('WP_CAPTCHA_SHIELD_VERSION', '1.0.0');
+        }
     }
 
     protected function tearDown(): void
@@ -42,7 +59,7 @@ final class HCaptchaWidgetTest extends TestCase
         );
     }
 
-    public function testItEnqueuesTheOfficialHCaptchaScript(): void
+    public function testItEnqueuesTheCheckboxScript(): void
     {
         Functions\expect('wp_enqueue_script')
             ->once()
@@ -56,41 +73,117 @@ final class HCaptchaWidgetTest extends TestCase
 
         (new HCaptchaWidget())->enqueue(
             new CaptchaWidgetContext('wordpress_login', 'loginform'),
-            $this->settings(),
+            $this->settings(HCaptchaDisplayMode::Checkbox),
         );
 
         $this->addToAssertionCount(1);
     }
 
-    public function testItRendersTheCheckboxWidgetWithTheSiteKey(): void
+    public function testItEnqueuesInvisibleScripts(): void
     {
-        ob_start();
+        Functions\expect('wp_enqueue_script')
+            ->once()
+            ->with(
+                'wp-captcha-shield-hcaptcha-invisible',
+                WP_CAPTCHA_SHIELD_URL . 'assets/js/hcaptcha-invisible.js',
+                [],
+                WP_CAPTCHA_SHIELD_VERSION,
+                true,
+            );
 
-        (new HCaptchaWidget())->render(
+        Functions\expect('wp_enqueue_script')
+            ->once()
+            ->with(
+                'wp-captcha-shield-hcaptcha',
+                'https://js.hcaptcha.com/1/api.js?'
+                . 'onload=wpCaptchaShieldHCaptchaOnload&render=explicit',
+                ['wp-captcha-shield-hcaptcha-invisible'],
+                null,
+                true,
+            );
+
+        (new HCaptchaWidget())->enqueue(
             new CaptchaWidgetContext('wordpress_login', 'loginform'),
-            $this->settings(),
+            $this->settings(HCaptchaDisplayMode::Invisible),
         );
 
-        $output = ob_get_clean();
+        $this->addToAssertionCount(2);
+    }
 
-        self::assertIsString($output);
+    public function testItRendersTheCheckboxWidgetWithTheSiteKey(): void
+    {
+        $output = $this->render(HCaptchaDisplayMode::Checkbox);
+
         self::assertStringContainsString('class="h-captcha"', $output);
         self::assertStringContainsString(
             'data-sitekey="hcaptcha-site-key"',
             $output,
         );
+        self::assertStringNotContainsString(
+            'wp-captcha-shield-hcaptcha-invisible-widget',
+            $output,
+        );
+        self::assertStringNotContainsString('<script>', $output);
+    }
+
+    public function testItRendersInvisibleConfiguration(): void
+    {
+        $output = $this->render(HCaptchaDisplayMode::Invisible);
+
+        self::assertStringContainsString(
+            'id="wp-captcha-shield-hcaptcha-invisible-widget-custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'class="wp-captcha-shield-hcaptcha-invisible-widget"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-form-id="custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-site-key="hcaptcha-site-key"',
+            $output,
+        );
+        self::assertStringNotContainsString('class="h-captcha"', $output);
         self::assertStringNotContainsString('<script>', $output);
     }
 
     public function testItUsesTheHCaptchaResponseTokenField(): void
     {
+        $widget = new HCaptchaWidget();
+
         self::assertSame(
             'h-captcha-response',
-            (new HCaptchaWidget())->tokenFieldName($this->settings()),
+            $widget->tokenFieldName(
+                $this->settings(HCaptchaDisplayMode::Checkbox),
+            ),
+        );
+        self::assertSame(
+            'h-captcha-response',
+            $widget->tokenFieldName(
+                $this->settings(HCaptchaDisplayMode::Invisible),
+            ),
         );
     }
 
-    private function settings(): PluginSettings
+    private function render(HCaptchaDisplayMode $mode): string
+    {
+        ob_start();
+
+        (new HCaptchaWidget())->render(
+            new CaptchaWidgetContext('custom_action', 'custom-form'),
+            $this->settings($mode),
+        );
+
+        $output = ob_get_clean();
+        self::assertIsString($output);
+
+        return $output;
+    }
+
+    private function settings(HCaptchaDisplayMode $mode): PluginSettings
     {
         return new PluginSettings(
             GlobalCaptchaSetting::disabled(),
@@ -100,7 +193,7 @@ final class HCaptchaWidgetTest extends TestCase
             new HCaptchaSettings(
                 'hcaptcha-site-key',
                 'hcaptcha-secret-key',
-                HCaptchaDisplayMode::Checkbox,
+                $mode,
             ),
         );
     }
