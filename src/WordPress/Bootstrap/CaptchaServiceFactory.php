@@ -87,6 +87,7 @@ final class CaptchaServiceFactory
             $configuration->apiKey(),
             $configuration->siteKey(),
             $configuration->minimumScore(),
+            $configuration->mode(),
             $this->httpClient,
             new GoogleRecaptchaAssessmentParser(),
             new GoogleRecaptchaErrorMapper(),

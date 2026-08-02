@@ -91,6 +91,67 @@ final class GoogleRecaptchaWidgetTest extends TestCase
         $this->addToAssertionCount(2);
     }
 
+    public function testItEnqueuesTheCheckboxScript(): void
+    {
+        Functions\expect('wp_enqueue_script')
+            ->once()
+            ->with(
+                'wp-captcha-shield-google-recaptcha',
+                'https://www.google.com/recaptcha/enterprise.js',
+                [],
+                null,
+                true,
+            );
+
+        (new GoogleRecaptchaWidget())->enqueue(
+            new CaptchaWidgetContext('wordpress_login', 'loginform'),
+            $this->settings(GoogleRecaptchaMode::Checkbox),
+        );
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function testItRendersCheckboxConfiguration(): void
+    {
+        ob_start();
+
+        (new GoogleRecaptchaWidget())->render(
+            new CaptchaWidgetContext('custom_action', 'custom-form'),
+            $this->settings(GoogleRecaptchaMode::Checkbox),
+        );
+
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString(
+            'class="g-recaptcha"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-sitekey="google-site-key"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-action="custom_action"',
+            $output,
+        );
+        self::assertStringNotContainsString(
+            'name="wp_captcha_shield_google_token"',
+            $output,
+        );
+        self::assertStringNotContainsString('<script>', $output);
+    }
+
+    public function testItUsesTheGoogleTokenFieldForCheckboxMode(): void
+    {
+        self::assertSame(
+            'g-recaptcha-response',
+            (new GoogleRecaptchaWidget())->tokenFieldName(
+                $this->settings(GoogleRecaptchaMode::Checkbox),
+            ),
+        );
+    }
+
     public function testItRendersScoreBasedConfiguration(): void
     {
         ob_start();

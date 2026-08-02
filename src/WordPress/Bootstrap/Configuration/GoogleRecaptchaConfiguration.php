@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpCaptchaShield\WordPress\Bootstrap\Configuration;
 
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
+
 final class GoogleRecaptchaConfiguration
 {
     public function __construct(
@@ -11,6 +13,7 @@ final class GoogleRecaptchaConfiguration
         private string $apiKey,
         private string $siteKey,
         private float $minimumScore,
+        private GoogleRecaptchaMode $mode,
     ) {
     }
 
@@ -39,5 +42,10 @@ final class GoogleRecaptchaConfiguration
     public function minimumScore(): float
     {
         return $this->minimumScore;
+    }
+
+    public function mode(): GoogleRecaptchaMode
+    {
+        return $this->mode;
     }
 }

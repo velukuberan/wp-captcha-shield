@@ -28,12 +28,10 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
         unset($context);
 
         $google = $settings->googleRecaptcha();
-        $siteKey = rawurlencode($google->siteKey());
 
         wp_enqueue_script(
             'wp-captcha-shield-google-recaptcha',
-            'https://www.google.com/recaptcha/enterprise.js?render='
-            . $siteKey,
+            $this->scriptUrl($google),
             [],
             null,
             true,
@@ -159,5 +157,16 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
         return self::TOKEN_FIELD
             . '-'
             . sanitize_html_class($context->formId());
+    }
+
+    private function scriptUrl(
+        GoogleRecaptchaSettings $settings,
+    ): string {
+        if ($settings->mode() === GoogleRecaptchaMode::Checkbox) {
+            return 'https://www.google.com/recaptcha/enterprise.js';
+        }
+
+        return 'https://www.google.com/recaptcha/enterprise.js?render='
+            . rawurlencode($settings->siteKey());
     }
 }

@@ -20,6 +20,7 @@ final class CaptchaProviderConfigurationFactory
                 $settings->googleRecaptcha()->apiKey(),
                 $settings->googleRecaptcha()->siteKey(),
                 $settings->googleRecaptcha()->minimumScore(),
+                $settings->googleRecaptcha()->mode(),
             ),
             new HCaptchaConfiguration(
                 $settings->hCaptcha()->secretKey(),

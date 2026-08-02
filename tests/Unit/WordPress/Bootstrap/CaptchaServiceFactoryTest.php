@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\VerificationFailureReason;
 use WpCaptchaShield\Domain\Verification\VerificationStatus;
@@ -103,6 +104,7 @@ final class CaptchaServiceFactoryTest extends TestCase
                     'api-key',
                     'site-key',
                     0.5,
+                    GoogleRecaptchaMode::ScoreBased,
                 ),
                 new HCaptchaConfiguration(''),
             ),
@@ -140,6 +142,12 @@ final class CaptchaServiceFactoryTest extends TestCase
 
     private static function emptyGoogleConfiguration(): GoogleRecaptchaConfiguration
     {
-        return new GoogleRecaptchaConfiguration('', '', '', 0.5);
+        return new GoogleRecaptchaConfiguration(
+            '',
+            '',
+            '',
+            0.5,
+            GoogleRecaptchaMode::ScoreBased,
+        );
     }
 }

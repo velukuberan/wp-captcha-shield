@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpCaptchaShield\Tests\Unit\WordPress\Bootstrap\Configuration;
 
 use PHPUnit\Framework\TestCase;
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfiguration;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\CloudflareTurnstileConfiguration;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\GoogleRecaptchaConfiguration;
@@ -20,6 +21,7 @@ final class CaptchaProviderConfigurationTest extends TestCase
             'api-key',
             'site-key',
             0.5,
+            GoogleRecaptchaMode::ScoreBased,
         );
         $hCaptcha = new HCaptchaConfiguration('hcaptcha');
 

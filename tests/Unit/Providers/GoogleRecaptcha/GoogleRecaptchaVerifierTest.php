@@ -10,6 +10,7 @@ use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
 use WpCaptchaShield\Domain\Http\HttpResponse;
@@ -312,6 +313,52 @@ final class GoogleRecaptchaVerifierTest extends TestCase
         self::assertTrue($result->isSuccessful());
     }
 
+    public function testCheckboxAcceptsAValidAssessment(): void
+    {
+        $this->expectResponse($this->validResponse(0.9));
+
+        $result = $this->createVerifier(
+            mode: GoogleRecaptchaMode::Checkbox,
+        )->verify(
+            new CaptchaVerificationRequest('submitted-token'),
+        );
+
+        self::assertTrue($result->isSuccessful());
+    }
+
+    public function testCheckboxDoesNotApplyTheMinimumScore(): void
+    {
+        $this->expectResponse($this->validResponse(0.1));
+
+        $result = $this->createVerifier(
+            minimumScore: 0.9,
+            mode: GoogleRecaptchaMode::Checkbox,
+        )->verify(
+            new CaptchaVerificationRequest('submitted-token'),
+        );
+
+        self::assertTrue($result->isSuccessful());
+    }
+
+    public function testCheckboxStillRejectsAMismatchedAction(): void
+    {
+        $this->expectResponse($this->validResponse(0.9, 'comment'));
+
+        $result = $this->createVerifier(
+            mode: GoogleRecaptchaMode::Checkbox,
+        )->verify(
+            new CaptchaVerificationRequest(
+                'submitted-token',
+                expectedAction: 'wordpress_login',
+            ),
+        );
+
+        self::assertSame(
+            VerificationFailureReason::ProviderRejected,
+            $result->reason(),
+        );
+    }
+
     public function testItMapsAnHttpClientExceptionToUnavailable(): void
     {
         $this->httpClient
@@ -423,12 +470,14 @@ final class GoogleRecaptchaVerifierTest extends TestCase
         string $apiKey = 'api-key',
         string $siteKey = 'site-key',
         float $minimumScore = 0.5,
+        GoogleRecaptchaMode $mode = GoogleRecaptchaMode::ScoreBased,
     ): GoogleRecaptchaVerifier {
         return new GoogleRecaptchaVerifier(
             $projectId,
             $apiKey,
             $siteKey,
             $minimumScore,
+            $mode,
             $this->httpClient,
             new GoogleRecaptchaAssessmentParser(),
             new GoogleRecaptchaErrorMapper(),
