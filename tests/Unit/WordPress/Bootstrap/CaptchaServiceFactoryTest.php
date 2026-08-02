@@ -91,7 +91,7 @@ final class CaptchaServiceFactoryTest extends TestCase
             new CaptchaProviderConfiguration(
                 new CloudflareTurnstileConfiguration('secret'),
                 self::emptyGoogleConfiguration(),
-                new HCaptchaConfiguration(''),
+                new HCaptchaConfiguration('', ''),
             ),
             CaptchaProvider::CloudflareTurnstile,
         ];
@@ -106,7 +106,7 @@ final class CaptchaServiceFactoryTest extends TestCase
                     0.5,
                     GoogleRecaptchaMode::ScoreBased,
                 ),
-                new HCaptchaConfiguration(''),
+                new HCaptchaConfiguration('', ''),
             ),
             CaptchaProvider::GoogleRecaptcha,
         ];
@@ -115,7 +115,7 @@ final class CaptchaServiceFactoryTest extends TestCase
             new CaptchaProviderConfiguration(
                 new CloudflareTurnstileConfiguration(''),
                 self::emptyGoogleConfiguration(),
-                new HCaptchaConfiguration('secret'),
+                new HCaptchaConfiguration('secret', 'site-key'),
             ),
             CaptchaProvider::HCaptcha,
         ];
@@ -136,7 +136,7 @@ final class CaptchaServiceFactoryTest extends TestCase
         return new CaptchaProviderConfiguration(
             new CloudflareTurnstileConfiguration(''),
             self::emptyGoogleConfiguration(),
-            new HCaptchaConfiguration(''),
+            new HCaptchaConfiguration('', ''),
         );
     }
 

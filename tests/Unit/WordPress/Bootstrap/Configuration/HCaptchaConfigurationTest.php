@@ -13,21 +13,28 @@ final class HCaptchaConfigurationTest extends TestCase
     #[DataProvider('configurationCases')]
     public function testItDeterminesWhetherConfigurationIsComplete(
         string $secretKey,
+        string $siteKey,
         bool $expected,
     ): void {
-        $configuration = new HCaptchaConfiguration($secretKey);
+        $configuration = new HCaptchaConfiguration(
+            $secretKey,
+            $siteKey,
+        );
 
         self::assertSame($expected, $configuration->isConfigured());
         self::assertSame($secretKey, $configuration->secretKey());
+        self::assertSame($siteKey, $configuration->siteKey());
     }
 
     /**
-     * @return iterable<string, array{string, bool}>
+     * @return iterable<string, array{string, string, bool}>
      */
     public static function configurationCases(): iterable
     {
-        yield 'empty secret' => ['', false];
-        yield 'whitespace secret' => ['   ', false];
-        yield 'configured secret' => ['hcaptcha-secret', true];
+        yield 'empty secret' => ['', 'site-key', false];
+        yield 'whitespace secret' => ['   ', 'site-key', false];
+        yield 'empty site key' => ['secret-key', '', false];
+        yield 'whitespace site key' => ['secret-key', '   ', false];
+        yield 'configured' => ['hcaptcha-secret', 'hcaptcha-site', true];
     }
 }
