@@ -111,6 +111,37 @@ final class GoogleRecaptchaWidgetTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function testItEnqueuesInvisibleScripts(): void
+    {
+        Functions\expect('wp_enqueue_script')
+            ->once()
+            ->with(
+                'wp-captcha-shield-google-recaptcha',
+                'https://www.google.com/recaptcha/enterprise.js?render=explicit',
+                [],
+                null,
+                true,
+            );
+
+        Functions\expect('wp_enqueue_script')
+            ->once()
+            ->with(
+                'wp-captcha-shield-google-recaptcha-invisible',
+                WP_CAPTCHA_SHIELD_URL
+                . 'assets/js/google-recaptcha-invisible.js',
+                ['wp-captcha-shield-google-recaptcha'],
+                WP_CAPTCHA_SHIELD_VERSION,
+                true,
+            );
+
+        (new GoogleRecaptchaWidget())->enqueue(
+            new CaptchaWidgetContext('wordpress_login', 'loginform'),
+            $this->settings(GoogleRecaptchaMode::Invisible),
+        );
+
+        $this->addToAssertionCount(2);
+    }
+
     public function testItRendersCheckboxConfiguration(): void
     {
         ob_start();
@@ -123,10 +154,7 @@ final class GoogleRecaptchaWidgetTest extends TestCase
         $output = ob_get_clean();
 
         self::assertIsString($output);
-        self::assertStringContainsString(
-            'class="g-recaptcha"',
-            $output,
-        );
+        self::assertStringContainsString('class="g-recaptcha"', $output);
         self::assertStringContainsString(
             'data-sitekey="google-site-key"',
             $output,
@@ -154,16 +182,8 @@ final class GoogleRecaptchaWidgetTest extends TestCase
 
     public function testItRendersScoreBasedConfiguration(): void
     {
-        ob_start();
+        $output = $this->render(GoogleRecaptchaMode::ScoreBased);
 
-        (new GoogleRecaptchaWidget())->render(
-            new CaptchaWidgetContext('custom_action', 'custom-form'),
-            $this->settings(GoogleRecaptchaMode::ScoreBased),
-        );
-
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
         self::assertStringContainsString(
             'name="wp_captcha_shield_google_token"',
             $output,
@@ -176,6 +196,84 @@ final class GoogleRecaptchaWidgetTest extends TestCase
             'class="wp-captcha-shield-google-score-token"',
             $output,
         );
+        $this->assertExecutableTokenConfiguration($output);
+    }
+
+    public function testItRendersInvisibleConfiguration(): void
+    {
+        $output = $this->render(GoogleRecaptchaMode::Invisible);
+
+        self::assertStringContainsString(
+            'name="wp_captcha_shield_google_token"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'id="wp_captcha_shield_google_token-custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'id="wp-captcha-shield-google-invisible-widget-custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'class="wp-captcha-shield-google-invisible-widget"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-form-id="custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-token-id="wp_captcha_shield_google_token-custom-form"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-site-key="google-site-key"',
+            $output,
+        );
+        self::assertStringContainsString(
+            'data-action="custom_action"',
+            $output,
+        );
+        self::assertStringNotContainsString('<script>', $output);
+        self::assertStringNotContainsString('class="g-recaptcha"', $output);
+    }
+
+    public function testItUsesThePluginTokenFieldForExecutableModes(): void
+    {
+        $widget = new GoogleRecaptchaWidget();
+
+        self::assertSame(
+            GoogleRecaptchaWidget::TOKEN_FIELD,
+            $widget->tokenFieldName(
+                $this->settings(GoogleRecaptchaMode::ScoreBased),
+            ),
+        );
+        self::assertSame(
+            GoogleRecaptchaWidget::TOKEN_FIELD,
+            $widget->tokenFieldName(
+                $this->settings(GoogleRecaptchaMode::Invisible),
+            ),
+        );
+    }
+
+    private function render(GoogleRecaptchaMode $mode): string
+    {
+        ob_start();
+
+        (new GoogleRecaptchaWidget())->render(
+            new CaptchaWidgetContext('custom_action', 'custom-form'),
+            $this->settings($mode),
+        );
+
+        $output = ob_get_clean();
+        self::assertIsString($output);
+
+        return $output;
+    }
+
+    private function assertExecutableTokenConfiguration(string $output): void
+    {
         self::assertStringContainsString(
             'data-form-id="custom-form"',
             $output,
@@ -190,16 +288,6 @@ final class GoogleRecaptchaWidgetTest extends TestCase
         );
         self::assertStringNotContainsString('<script>', $output);
         self::assertStringNotContainsString('g-recaptcha', $output);
-    }
-
-    public function testItUsesThePluginTokenFieldForScoreBasedMode(): void
-    {
-        self::assertSame(
-            GoogleRecaptchaWidget::TOKEN_FIELD,
-            (new GoogleRecaptchaWidget())->tokenFieldName(
-                $this->settings(GoogleRecaptchaMode::ScoreBased),
-            ),
-        );
     }
 
     private function settings(GoogleRecaptchaMode $mode): PluginSettings
