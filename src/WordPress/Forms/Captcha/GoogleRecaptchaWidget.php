@@ -16,6 +16,9 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
     private const SCORE_TOKEN_CLASS =
         'wp-captcha-shield-google-score-token';
 
+    private const INVISIBLE_WIDGET_CLASS =
+        'wp-captcha-shield-google-invisible-widget';
+
     public function provider(): CaptchaProvider
     {
         return CaptchaProvider::GoogleRecaptcha;
@@ -37,14 +40,25 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
             true,
         );
 
-        if ($google->mode() !== GoogleRecaptchaMode::ScoreBased) {
+        $asset = match ($google->mode()) {
+            GoogleRecaptchaMode::ScoreBased => [
+                'wp-captcha-shield-google-recaptcha-score-based',
+                'assets/js/google-recaptcha-score-based.js',
+            ],
+            GoogleRecaptchaMode::Invisible => [
+                'wp-captcha-shield-google-recaptcha-invisible',
+                'assets/js/google-recaptcha-invisible.js',
+            ],
+            GoogleRecaptchaMode::Checkbox => null,
+        };
+
+        if ($asset === null) {
             return;
         }
 
         wp_enqueue_script(
-            'wp-captcha-shield-google-recaptcha-score-based',
-            WP_CAPTCHA_SHIELD_URL
-            . 'assets/js/google-recaptcha-score-based.js',
+            $asset[0],
+            WP_CAPTCHA_SHIELD_URL . $asset[1],
             ['wp-captcha-shield-google-recaptcha'],
             WP_CAPTCHA_SHIELD_VERSION,
             true,
@@ -79,16 +93,10 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
         CaptchaWidgetContext $context,
         GoogleRecaptchaSettings $settings,
     ): void {
-        printf(
-            '<input type="hidden" name="%s" id="%s" class="%s" '
-            . 'data-form-id="%s" data-site-key="%s" '
-            . 'data-action="%s" value="">',
-            esc_attr(self::TOKEN_FIELD),
-            esc_attr($this->scoreTokenId($context)),
-            esc_attr(self::SCORE_TOKEN_CLASS),
-            esc_attr($context->formId()),
-            esc_attr($settings->siteKey()),
-            esc_attr($context->action()),
+        $this->renderExecutableToken(
+            $context,
+            $settings,
+            self::SCORE_TOKEN_CLASS,
         );
     }
 
@@ -109,64 +117,67 @@ final class GoogleRecaptchaWidget implements CaptchaWidget
         CaptchaWidgetContext $context,
         GoogleRecaptchaSettings $settings,
     ): void {
+        $tokenId = $this->tokenId($context);
+
         printf(
-            '<input type="hidden" name="%s" id="%s" value="">',
+            '<input type="hidden" name="%s" id="%s" value="">'
+            . '<div id="%s" class="%s" '
+            . 'data-form-id="%s" data-token-id="%s" '
+            . 'data-site-key="%s" data-action="%s"></div>',
             esc_attr(self::TOKEN_FIELD),
-            esc_attr(self::TOKEN_FIELD),
+            esc_attr($tokenId),
+            esc_attr($this->invisibleWidgetId($context)),
+            esc_attr(self::INVISIBLE_WIDGET_CLASS),
+            esc_attr($context->formId()),
+            esc_attr($tokenId),
+            esc_attr($settings->siteKey()),
+            esc_attr($context->action()),
         );
-        ?>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var form = document.getElementById(
-                    '<?php echo esc_js($context->formId()); ?>'
-                );
-                var token = document.getElementById(
-                    '<?php echo esc_js(self::TOKEN_FIELD); ?>'
-                );
-
-                if (!form || !token || typeof grecaptcha === 'undefined') {
-                    return;
-                }
-
-                form.addEventListener('submit', function (event) {
-                    if (token.value !== '') {
-                        return;
-                    }
-
-                    event.preventDefault();
-                    grecaptcha.enterprise.ready(function () {
-                        grecaptcha.enterprise.execute(
-                            '<?php echo esc_js($settings->siteKey()); ?>',
-                            {
-                                action:
-                                    '<?php echo esc_js($context->action()); ?>'
-                            }
-                        ).then(function (value) {
-                            token.value = value;
-                            form.submit();
-                        });
-                    });
-                });
-            });
-        </script>
-        <?php
     }
 
-    private function scoreTokenId(CaptchaWidgetContext $context): string
+    private function renderExecutableToken(
+        CaptchaWidgetContext $context,
+        GoogleRecaptchaSettings $settings,
+        string $className,
+    ): void {
+        printf(
+            '<input type="hidden" name="%s" id="%s" class="%s" '
+            . 'data-form-id="%s" data-site-key="%s" '
+            . 'data-action="%s" value="">',
+            esc_attr(self::TOKEN_FIELD),
+            esc_attr($this->tokenId($context)),
+            esc_attr($className),
+            esc_attr($context->formId()),
+            esc_attr($settings->siteKey()),
+            esc_attr($context->action()),
+        );
+    }
+
+    private function tokenId(CaptchaWidgetContext $context): string
     {
         return self::TOKEN_FIELD
             . '-'
             . sanitize_html_class($context->formId());
     }
 
+    private function invisibleWidgetId(
+        CaptchaWidgetContext $context,
+    ): string {
+        return 'wp-captcha-shield-google-invisible-widget-'
+            . sanitize_html_class($context->formId());
+    }
+
     private function scriptUrl(
         GoogleRecaptchaSettings $settings,
     ): string {
-        if ($settings->mode() === GoogleRecaptchaMode::Checkbox) {
-            return 'https://www.google.com/recaptcha/enterprise.js';
-        }
-
-        return 'https://www.google.com/recaptcha/enterprise.js?render='
-            . rawurlencode($settings->siteKey());
+        return match ($settings->mode()) {
+            GoogleRecaptchaMode::ScoreBased =>
+                'https://www.google.com/recaptcha/enterprise.js?render='
+                . rawurlencode($settings->siteKey()),
+            GoogleRecaptchaMode::Checkbox =>
+                'https://www.google.com/recaptcha/enterprise.js',
+            GoogleRecaptchaMode::Invisible =>
+                'https://www.google.com/recaptcha/enterprise.js?render=explicit',
+        };
     }
 }
