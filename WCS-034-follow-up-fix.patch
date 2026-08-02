@@ -1,0 +1,40 @@
+\
+diff --git a/tests/Unit/WordPress/Bootstrap/Configuration/CaptchaProviderConfigurationTest.php b/tests/Unit/WordPress/Bootstrap/Configuration/CaptchaProviderConfigurationTest.php
+--- a/tests/Unit/WordPress/Bootstrap/Configuration/CaptchaProviderConfigurationTest.php
++++ b/tests/Unit/WordPress/Bootstrap/Configuration/CaptchaProviderConfigurationTest.php
+@@ -5,6 +5,7 @@ declare(strict_types=1);
+ namespace WpCaptchaShield\Tests\Unit\WordPress\Bootstrap\Configuration;
+
+ use PHPUnit\Framework\TestCase;
++use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
+ use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfiguration;
+ use WpCaptchaShield\WordPress\Bootstrap\Configuration\CloudflareTurnstileConfiguration;
+ use WpCaptchaShield\WordPress\Bootstrap\Configuration\GoogleRecaptchaConfiguration;
+@@ -20,6 +21,7 @@ final class CaptchaProviderConfigurationTest extends TestCase
+             'api-key',
+             'site-key',
+             0.5,
++            GoogleRecaptchaMode::ScoreBased,
+         );
+         $hCaptcha = new HCaptchaConfiguration('hcaptcha');
+
+diff --git a/tests/Unit/Providers/GoogleRecaptcha/GoogleRecaptchaVerifierTest.php b/tests/Unit/Providers/GoogleRecaptcha/GoogleRecaptchaVerifierTest.php
+--- a/tests/Unit/Providers/GoogleRecaptcha/GoogleRecaptchaVerifierTest.php
++++ b/tests/Unit/Providers/GoogleRecaptcha/GoogleRecaptchaVerifierTest.php
+@@ -309,14 +309,9 @@ final class GoogleRecaptchaVerifierTest extends TestCase
+         self::assertTrue($result->isSuccessful());
+     }
+
+-    public function testCheckboxAcceptsAValidAssessmentWithoutAScore(): void
++    public function testCheckboxAcceptsAValidAssessment(): void
+     {
+-        $this->expectResponse(
+-            new HttpResponse(
+-                200,
+-                '{"tokenProperties":{"valid":true}}',
+-            ),
+-        );
++        $this->expectResponse($this->validResponse(0.9));
+
+         $result = $this->createVerifier(
+             mode: GoogleRecaptchaMode::Checkbox,

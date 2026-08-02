@@ -6,6 +6,7 @@ namespace WpCaptchaShield\Tests\Unit\WordPress\Bootstrap\Configuration;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\GoogleRecaptchaConfiguration;
 
 final class GoogleRecaptchaConfigurationTest extends TestCase
@@ -22,6 +23,7 @@ final class GoogleRecaptchaConfigurationTest extends TestCase
             $apiKey,
             $siteKey,
             0.5,
+            GoogleRecaptchaMode::Checkbox,
         );
 
         self::assertSame($expected, $configuration->isConfigured());
@@ -29,6 +31,10 @@ final class GoogleRecaptchaConfigurationTest extends TestCase
         self::assertSame($apiKey, $configuration->apiKey());
         self::assertSame($siteKey, $configuration->siteKey());
         self::assertSame(0.5, $configuration->minimumScore());
+        self::assertSame(
+            GoogleRecaptchaMode::Checkbox,
+            $configuration->mode(),
+        );
     }
 
     /**

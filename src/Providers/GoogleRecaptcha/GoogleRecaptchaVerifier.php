@@ -6,6 +6,7 @@ namespace WpCaptchaShield\Providers\GoogleRecaptcha;
 
 use JsonException;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
+use WpCaptchaShield\Domain\Configuration\Provider\GoogleRecaptchaMode;
 use WpCaptchaShield\Domain\Http\HttpClient;
 use WpCaptchaShield\Domain\Http\HttpClientException;
 use WpCaptchaShield\Domain\Http\HttpResponse;
@@ -26,6 +27,7 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
         private string $apiKey,
         private string $siteKey,
         private float $minimumScore,
+        private GoogleRecaptchaMode $mode,
         private HttpClient $httpClient,
         private GoogleRecaptchaAssessmentParser $assessmentParser,
         private GoogleRecaptchaErrorMapper $errorMapper,
@@ -99,8 +101,9 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
             VerificationResult::misconfigured(
                 VerificationFailureReason::MissingConfiguration,
             ),
-            $this->minimumScore < 0.0,
-            $this->minimumScore > 1.0 =>
+            $this->mode !== GoogleRecaptchaMode::Checkbox
+                && ($this->minimumScore < 0.0
+                    || $this->minimumScore > 1.0) =>
             VerificationResult::misconfigured(
                 VerificationFailureReason::InvalidConfiguration,
             ),
@@ -149,6 +152,10 @@ final class GoogleRecaptchaVerifier implements CaptchaVerifier
             return VerificationResult::failed(
                 VerificationFailureReason::ProviderRejected,
             );
+        }
+
+        if ($this->mode === GoogleRecaptchaMode::Checkbox) {
+            return VerificationResult::successful();
         }
 
         $score = $assessment->score();
