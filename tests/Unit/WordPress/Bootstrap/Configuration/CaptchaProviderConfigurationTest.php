@@ -23,7 +23,7 @@ final class CaptchaProviderConfigurationTest extends TestCase
             0.5,
             GoogleRecaptchaMode::ScoreBased,
         );
-        $hCaptcha = new HCaptchaConfiguration('hcaptcha');
+        $hCaptcha = new HCaptchaConfiguration('hcaptcha', 'site-key');
 
         $configuration = new CaptchaProviderConfiguration(
             $turnstile,

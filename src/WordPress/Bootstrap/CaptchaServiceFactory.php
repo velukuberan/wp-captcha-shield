@@ -99,6 +99,7 @@ final class CaptchaServiceFactory
     ): CaptchaVerifier {
         return new HCaptchaVerifier(
             $configuration->secretKey(),
+            $configuration->siteKey(),
             $this->httpClient,
             new HCaptchaResponseParser(),
             new HCaptchaErrorMapper(),

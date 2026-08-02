@@ -20,6 +20,7 @@ final class HCaptchaVerifier implements CaptchaVerifier
 
     public function __construct(
         private string $secretKey,
+        private string $siteKey,
         private HttpClient $httpClient,
         private HCaptchaResponseParser $responseParser,
         private HCaptchaErrorMapper $errorMapper,
@@ -36,8 +37,13 @@ final class HCaptchaVerifier implements CaptchaVerifier
     ): VerificationResult {
         $token = $request->token();
         $secretKey = trim($this->secretKey);
+        $siteKey = trim($this->siteKey);
 
-        $inputFailure = $this->validateInput($token, $secretKey);
+        $inputFailure = $this->validateInput(
+            $token,
+            $secretKey,
+            $siteKey,
+        );
 
         if ($inputFailure !== null) {
             return $inputFailure;
@@ -52,6 +58,7 @@ final class HCaptchaVerifier implements CaptchaVerifier
                         $token,
                         $secretKey,
                         $request->remoteIp(),
+                        $siteKey,
                     ),
                 ],
             );
@@ -91,12 +98,14 @@ final class HCaptchaVerifier implements CaptchaVerifier
     private function validateInput(
         string $token,
         string $secretKey,
+        string $siteKey,
     ): ?VerificationResult {
         return match (true) {
             $token === '' => VerificationResult::failed(
                 VerificationFailureReason::MissingToken,
             ),
-            $secretKey === '' => VerificationResult::misconfigured(
+            $secretKey === '' || $siteKey === '' =>
+            VerificationResult::misconfigured(
                 VerificationFailureReason::MissingConfiguration,
             ),
             default => null,
@@ -110,10 +119,12 @@ final class HCaptchaVerifier implements CaptchaVerifier
         string $token,
         string $secretKey,
         ?string $remoteIp,
+        string $siteKey,
     ): array {
         $body = [
             'secret' => $secretKey,
             'response' => $token,
+            'sitekey' => $siteKey,
         ];
 
         if ($remoteIp !== null) {

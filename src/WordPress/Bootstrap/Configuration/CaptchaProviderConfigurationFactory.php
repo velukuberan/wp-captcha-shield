@@ -24,6 +24,7 @@ final class CaptchaProviderConfigurationFactory
             ),
             new HCaptchaConfiguration(
                 $settings->hCaptcha()->secretKey(),
+                $settings->hCaptcha()->siteKey(),
             ),
         );
     }

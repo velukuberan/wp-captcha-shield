@@ -36,7 +36,10 @@ final class HCaptchaVerifierTest extends TestCase
         $httpClient = Mockery::mock(HttpClient::class);
 
         $this->httpClient = $httpClient;
-        $this->verifier = $this->createVerifier('secret-key');
+        $this->verifier = $this->createVerifier(
+            'secret-key',
+            'site-key',
+        );
     }
 
     public function testItIdentifiesItsProvider(): void
@@ -66,7 +69,25 @@ final class HCaptchaVerifierTest extends TestCase
     {
         $this->httpClient->shouldNotReceive('post');
 
-        $result = $this->createVerifier('   ')->verify(
+        $result = $this->createVerifier('   ', 'site-key')->verify(
+            $this->request('submitted-token'),
+        );
+
+        self::assertSame(
+            VerificationStatus::Misconfigured,
+            $result->status(),
+        );
+        self::assertSame(
+            VerificationFailureReason::MissingConfiguration,
+            $result->reason(),
+        );
+    }
+
+    public function testItRejectsAMissingSiteKeyWithoutCallingHCaptcha(): void
+    {
+        $this->httpClient->shouldNotReceive('post');
+
+        $result = $this->createVerifier('secret-key', '   ')->verify(
             $this->request('submitted-token'),
         );
 
@@ -92,6 +113,7 @@ final class HCaptchaVerifierTest extends TestCase
                     'body' => [
                         'secret' => 'secret-key',
                         'response' => 'submitted-token',
+                        'sitekey' => 'site-key',
                         'remoteip' => '203.0.113.10',
                     ],
                 ],
@@ -123,6 +145,7 @@ final class HCaptchaVerifierTest extends TestCase
                     'body' => [
                         'secret' => 'secret-key',
                         'response' => 'submitted-token',
+                        'sitekey' => 'site-key',
                     ],
                 ],
             )
@@ -162,6 +185,7 @@ final class HCaptchaVerifierTest extends TestCase
                     'body' => [
                         'secret' => 'secret-key',
                         'response' => 'submitted-token',
+                        'sitekey' => 'site-key',
                     ],
                 ],
             )
@@ -266,10 +290,13 @@ final class HCaptchaVerifierTest extends TestCase
         );
     }
 
-    private function createVerifier(string $secretKey): HCaptchaVerifier
-    {
+    private function createVerifier(
+        string $secretKey,
+        string $siteKey,
+    ): HCaptchaVerifier {
         return new HCaptchaVerifier(
             $secretKey,
+            $siteKey,
             $this->httpClient,
             new HCaptchaResponseParser(),
             new HCaptchaErrorMapper(),
