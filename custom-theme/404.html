@@ -1,0 +1,9 @@
+{% extends "main.html" %}
+{% block content %}
+  <main id="main-content" class="not-found">
+    <p class="eyebrow">404</p>
+    <h1>This page could not be found.</h1>
+    <p>The documentation page may have moved or the address may be incorrect.</p>
+    <a class="button button--primary" href="{{ nav.homepage.url|url }}">Return to documentation</a>
+  </main>
+{% endblock %}
