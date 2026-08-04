@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="{{ config.theme.language|default('en') }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#07090b">
+    <meta name="description" content="{{ config.site_description }}">
+    <title>{% if page and page.title %}{{ page.title }} · {% endif %}{{ config.site_name }}</title>
+    <link rel="canonical" href="{{ page.canonical_url }}">
+    <link rel="stylesheet" href="{{ 'assets/css/theme.css'|url }}">
+    {% for path in config.extra_css %}
+      <link rel="stylesheet" href="{{ path|url }}">
+    {% endfor %}
+  </head>
+  <body class="{% if page and page.is_homepage %}is-home{% else %}is-doc{% endif %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    {% include "partials/header.html" %}
+
+    {% if page and page.is_homepage %}
+      <main id="main-content" class="home-main">
+        {{ page.content }}
+      </main>
+    {% else %}
+      <main id="main-content" class="docs-shell">
+        {% include "partials/sidebar.html" %}
+
+        <article class="docs-content">
+          <div class="docs-content__inner">
+            <div class="breadcrumbs" aria-label="Breadcrumb">
+              <a href="{{ nav.homepage.url|url }}">Docs</a>
+              {% if page and not page.is_homepage %}
+                <span aria-hidden="true">/</span>
+                <span>{{ page.title }}</span>
+              {% endif %}
+            </div>
+
+            {{ page.content }}
+
+            <nav class="page-nav" aria-label="Page navigation">
+              {% if page.previous_page %}
+                <a class="page-nav__item" href="{{ page.previous_page.url|url }}">
+                  <span>Previous</span>
+                  <strong>{{ page.previous_page.title }}</strong>
+                </a>
+              {% endif %}
+              {% if page.next_page %}
+                <a class="page-nav__item page-nav__item--next" href="{{ page.next_page.url|url }}">
+                  <span>Next</span>
+                  <strong>{{ page.next_page.title }}</strong>
+                </a>
+              {% endif %}
+            </nav>
+          </div>
+        </article>
+
+        {% include "partials/toc.html" %}
+      </main>
+    {% endif %}
+
+    {% include "partials/footer.html" %}
+
+    <div class="search-dialog" id="search-dialog" hidden>
+      <div class="search-dialog__backdrop" data-search-close></div>
+      <section class="search-panel" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <div class="search-panel__top">
+          <label id="search-title" for="docs-search">Search documentation</label>
+          <button class="icon-button" type="button" data-search-close aria-label="Close search">×</button>
+        </div>
+        <input id="docs-search" class="search-input" type="search" autocomplete="off"
+               placeholder="Search providers, forms, and setup guides">
+        <div id="search-results" class="search-results" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <script>
+      window.WCS_DOCS = {
+        baseUrl: "{{ base_url }}",
+        searchIndex: "{{ 'search/search_index.json'|url }}"
+      };
+    </script>
+    <script src="{{ 'assets/js/theme.js'|url }}" defer></script>
+    {% for path in config.extra_javascript %}
+      <script src="{{ path|url }}" defer></script>
+    {% endfor %}
+  </body>
+</html>

@@ -1,0 +1,15 @@
+<aside class="docs-toc" aria-label="On this page">
+  <div class="docs-toc__inner">
+    {% if page.toc %}
+      <p class="toc-label">On this page</p>
+      <nav>
+        {% for toc_item in page.toc %}
+          <a href="{{ toc_item.url }}">{{ toc_item.title }}</a>
+          {% for child in toc_item.children %}
+            <a class="toc-child" href="{{ child.url }}">{{ child.title }}</a>
+          {% endfor %}
+        {% endfor %}
+      </nav>
+    {% endif %}
+  </div>
+</aside>

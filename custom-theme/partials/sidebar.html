@@ -1,0 +1,34 @@
+<aside class="docs-sidebar" aria-label="Documentation navigation">
+  <div class="docs-sidebar__inner">
+    <p class="sidebar-label">Documentation</p>
+    <nav class="sidebar-nav">
+      {% for nav_item in nav %}
+        {% if nav_item.children %}
+          <section class="sidebar-group">
+            <p>{{ nav_item.title }}</p>
+            {% for child in nav_item.children %}
+              {% if child.children %}
+                {% for grandchild in child.children %}
+                  <a href="{{ grandchild.url|url }}"
+                     {% if grandchild.active %}class="is-active" aria-current="page"{% endif %}>
+                    {{ grandchild.title }}
+                  </a>
+                {% endfor %}
+              {% else %}
+                <a href="{{ child.url|url }}"
+                   {% if child.active %}class="is-active" aria-current="page"{% endif %}>
+                  {{ child.title }}
+                </a>
+              {% endif %}
+            {% endfor %}
+          </section>
+        {% else %}
+          <a href="{{ nav_item.url|url }}"
+             {% if nav_item.active %}class="is-active" aria-current="page"{% endif %}>
+            {{ nav_item.title }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+  </div>
+</aside>

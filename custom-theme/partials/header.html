@@ -1,0 +1,45 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="{{ nav.homepage.url|url }}" aria-label="{{ config.site_name }} home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="img">
+          <path d="M12 2.6 20 6v5.6c0 4.8-3.1 8.4-8 9.8-4.9-1.4-8-5-8-9.8V6l8-3.4Z"/>
+          <path d="m8.6 12.1 2.1 2.1 4.8-5"/>
+        </svg>
+      </span>
+      <span class="brand__text">{{ config.site_name }}</span>
+      <span class="brand__tag">Docs</span>
+    </a>
+
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a href="{{ 'getting-started/'|url }}">Get started</a>
+      <a href="{{ 'providers/'|url }}">Providers</a>
+      <a href="{{ 'forms/wordpress-login/'|url }}">Forms</a>
+      <a href="{{ 'troubleshooting/'|url }}">Troubleshooting</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="search-button" type="button" data-search-open>
+        <span aria-hidden="true">⌕</span>
+        <span>Search</span>
+        <kbd>/</kbd>
+      </button>
+      <a class="github-link" href="{{ config.repo_url }}" target="_blank" rel="noopener">
+        GitHub
+        <span aria-hidden="true">↗</span>
+      </a>
+      <button class="menu-button" type="button" data-menu-toggle aria-expanded="false"
+              aria-controls="mobile-navigation" aria-label="Open navigation">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-navigation" class="mobile-nav" hidden>
+    <a href="{{ 'getting-started/'|url }}">Get started</a>
+    <a href="{{ 'providers/'|url }}">Providers</a>
+    <a href="{{ 'forms/wordpress-login/'|url }}">Forms</a>
+    <a href="{{ 'troubleshooting/'|url }}">Troubleshooting</a>
+    <a href="{{ config.repo_url }}">GitHub</a>
+  </nav>
+</header>
