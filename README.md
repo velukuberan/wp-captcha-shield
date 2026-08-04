@@ -22,7 +22,7 @@ Implemented modes:
 - Non-Interactive
 - Invisible
 
-Setup guide: [Configure Cloudflare Turnstile](docs/providers/CLOUDFLARE_TURNSTILE.md)
+Setup guide: [Configure Cloudflare Turnstile](https://velukuberan.github.io/wp-captcha-shield/providers/cloudflare-turnstile/)
 
 ### Google reCAPTCHA
 
@@ -334,6 +334,7 @@ Uninstallation does not contact external CAPTCHA providers or revoke credentials
 - [Technical requirements](TECHNICAL_REQUIREMENTS.md)
 - [Coding standards](CODING_STANDARDS.md)
 - [Contributing](CONTRIBUTING.md)
+- [User documentation](https://velukuberan.github.io/wp-captcha-shield/)
 
 The project documents have the following priority when resolving conflicts:
 
