@@ -10,13 +10,13 @@ The plugin uses a provider-neutral configuration model:
 - configure supported modes independently for each provider;
 - keep CAPTCHA providers independent from WordPress and WooCommerce form integrations.
 
-> **Project status:** Planning and early development. The plugin is not ready for production use. The architecture and technical design may continue to evolve while the project is in its early stages.
+> **Project status:** Active development. The provider configuration, rendering, and server-side verification foundations are implemented for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha. WordPress login is the currently implemented form integration. The plugin is not ready for production use while the remaining WordPress and WooCommerce integrations, end-to-end coverage, packaging, and release validation are still being completed.
 
-## Planned CAPTCHA providers
+## Implemented CAPTCHA providers
 
 ### Cloudflare Turnstile
 
-Supported modes:
+Implemented modes:
 
 - Managed — default and recommended
 - Non-Interactive
@@ -26,7 +26,7 @@ Supported modes:
 
 Google reCAPTCHA uses the Google Cloud Fraud Defense reCAPTCHA Enterprise assessment API.
 
-Supported modes:
+Implemented modes:
 
 - Score-based — default and recommended
 - Checkbox
@@ -36,23 +36,30 @@ Version 1 focuses on bot detection and form-abuse assessment. Transaction fraud,
 
 ### hCaptcha
 
-Supported display modes:
+Implemented display modes:
 
 - Checkbox — default
 - Invisible
 
 Passive behaviour is controlled by the hCaptcha account and site-key configuration rather than by a plugin display-mode setting.
 
-## Planned form support
+## Form support
 
-### WordPress
+### Currently implemented
+
+#### WordPress
 
 - Login
+
+### Planned
+
+#### WordPress
+
 - Registration
 - Lost password
 - Comments
 
-### WooCommerce
+#### WooCommerce
 
 - Login
 - Registration
@@ -108,7 +115,7 @@ The Domain:
 
 ### Providers
 
-Contains provider-specific rendering and verification behaviour for:
+Contains provider-specific verification behaviour for:
 
 - Cloudflare Turnstile
 - Google reCAPTCHA
@@ -124,6 +131,7 @@ Contains:
 - WordPress actions and filters;
 - WordPress and WooCommerce form integrations;
 - application coordination;
+- CAPTCHA widget rendering;
 - settings persistence;
 - the admin settings page;
 - the WordPress HTTP client adapter.
@@ -250,12 +258,10 @@ See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing p
 
 ## Testing strategy
 
-The planned test coverage includes:
+The current PHP test suite covers the implemented Domain, provider, settings, WordPress adapter, widget, and WordPress login integration behaviour.
 
-- Domain unit tests;
-- provider tests using deterministic HTTP boundaries;
-- settings repository tests;
-- WordPress integration tests;
+The complete version 1 testing strategy also requires:
+
 - WooCommerce integration tests;
 - Playwright end-to-end tests for critical browser journeys;
 - minimum-version compatibility tests;
@@ -325,6 +331,7 @@ Uninstallation does not contact external CAPTCHA providers or revoke credentials
 - [Architecture](ARCHITECTURE.md)
 - [Technical requirements](TECHNICAL_REQUIREMENTS.md)
 - [Coding standards](CODING_STANDARDS.md)
+- [Contributing](CONTRIBUTING.md)
 
 The project documents have the following priority when resolving conflicts:
 
