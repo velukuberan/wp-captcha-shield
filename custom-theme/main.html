@@ -7,6 +7,21 @@
     <meta name="description" content="{{ config.site_description }}">
     <title>{% if page and page.title %}{{ page.title }} · {% endif %}{{ config.site_name }}</title>
     <link rel="canonical" href="{{ page.canonical_url }}">
+    <script>
+      (() => {
+        const storedTheme = localStorage.getItem("wcs-docs-theme");
+
+        const preferredTheme =
+          storedTheme ??
+          (
+            window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark"
+          );
+
+        document.documentElement.dataset.theme = preferredTheme;
+      })();
+    </script>
     <link rel="stylesheet" href="{{ 'assets/css/theme.css'|url }}">
     {% for path in config.extra_css %}
       <link rel="stylesheet" href="{{ path|url }}">

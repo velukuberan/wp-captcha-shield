@@ -11,6 +11,32 @@
     });
   }
 
+  const themeButton = document.querySelector("[data-theme-toggle]");
+
+  const applyTheme = (theme) => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("wcs-docs-theme", theme);
+
+    if (!themeButton) {
+      return;
+    }
+
+    const nextTheme = theme === "dark" ? "light" : "dark";
+
+    themeButton.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+  };
+
+  themeButton?.addEventListener("click", () => {
+    const currentTheme =
+      document.documentElement.dataset.theme === "light" ? "light" : "dark";
+
+    applyTheme(currentTheme === "dark" ? "light" : "dark");
+  });
+
+  applyTheme(
+    document.documentElement.dataset.theme === "light" ? "light" : "dark",
+  );
+
   const dialog = document.getElementById("search-dialog");
   const input = document.getElementById("docs-search");
   const results = document.getElementById("search-results");
@@ -50,7 +76,10 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "/" && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+    if (
+      event.key === "/" &&
+      !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)
+    ) {
       event.preventDefault();
       openSearch();
     }
@@ -72,20 +101,24 @@
       .slice(0, 8);
 
     if (!matches.length) {
-      results.innerHTML = '<p class="search-empty">No matching documentation found.</p>';
+      results.innerHTML =
+        '<p class="search-empty">No matching documentation found.</p>';
       return;
     }
 
-    results.innerHTML = matches.map((doc) => {
-      const text = (doc.text || "").replace(/\s+/g, " ").trim().slice(0, 150);
-      const base = window.WCS_DOCS.baseUrl === "." ? "" : window.WCS_DOCS.baseUrl;
-      return `
+    results.innerHTML = matches
+      .map((doc) => {
+        const text = (doc.text || "").replace(/\s+/g, " ").trim().slice(0, 150);
+        const base =
+          window.WCS_DOCS.baseUrl === "." ? "" : window.WCS_DOCS.baseUrl;
+        return `
         <a class="search-result" href="${base}/${doc.location}">
           <strong>${escapeHtml(doc.title)}</strong>
           <p>${escapeHtml(text)}${text.length === 150 ? "…" : ""}</p>
         </a>
       `;
-    }).join("");
+      })
+      .join("");
   });
 
   function escapeHtml(value) {
