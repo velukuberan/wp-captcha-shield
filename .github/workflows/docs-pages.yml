@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "docs/**"
+      - "custom-theme/**"
       - "mkdocs.yml"
       - "requirements-docs.txt"
       - ".github/workflows/docs-pages.yml"
@@ -13,6 +14,7 @@ on:
       - main
     paths:
       - "docs/**"
+      - "custom-theme/**"
       - "mkdocs.yml"
       - "requirements-docs.txt"
       - ".github/workflows/docs-pages.yml"
