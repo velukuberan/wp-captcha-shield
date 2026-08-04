@@ -1,6 +1,6 @@
 <header class="site-header">
   <div class="site-header__inner">
-    <a class="brand" href="{{ nav.homepage.url|url }}" aria-label="{{ config.site_name }} home">
+    <a class="brand" href="{{ config.site_url }}" aria-label="{{ config.site_name }} home">
       <span class="brand__mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" role="img">
           <path d="M12 2.6 20 6v5.6c0 4.8-3.1 8.4-8 9.8-4.9-1.4-8-5-8-9.8V6l8-3.4Z"/>
@@ -23,6 +23,16 @@
         <span aria-hidden="true">⌕</span>
         <span>Search</span>
         <kbd>/</kbd>
+      </button>
+      <button
+        class="theme-button"
+        type="button"
+        data-theme-toggle
+        aria-label="Switch to light theme"
+        title="Switch theme"
+      >
+        <span class="theme-button__dark" aria-hidden="true">☾</span>
+        <span class="theme-button__light" aria-hidden="true">☀</span>
       </button>
       <a class="github-link" href="{{ config.repo_url }}" target="_blank" rel="noopener">
         GitHub
