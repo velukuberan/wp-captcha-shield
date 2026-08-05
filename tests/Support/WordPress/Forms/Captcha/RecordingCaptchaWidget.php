@@ -11,9 +11,13 @@ use WpCaptchaShield\WordPress\Settings\PluginSettings;
 
 final class RecordingCaptchaWidget implements CaptchaWidget
 {
+    public ?string $operation = null;
+
     public ?string $action = null;
 
     public ?string $formId = null;
+
+    public ?PluginSettings $settings = null;
 
     public function __construct(
         private readonly CaptchaProvider $captchaProvider,
@@ -29,30 +33,34 @@ final class RecordingCaptchaWidget implements CaptchaWidget
         CaptchaWidgetContext $context,
         PluginSettings $settings,
     ): void {
-        unset($settings);
+        $this->operation = 'enqueue';
 
-        $this->record($context);
+        $this->record($context, $settings);
     }
 
     public function render(
         CaptchaWidgetContext $context,
         PluginSettings $settings,
     ): void {
-        unset($settings);
+        $this->operation = 'render';
 
-        $this->record($context);
+        $this->record($context, $settings);
     }
 
     public function tokenFieldName(PluginSettings $settings): string
     {
-        unset($settings);
+        $this->operation = 'tokenFieldName';
+        $this->settings = $settings;
 
         return 'recorded-token';
     }
 
-    private function record(CaptchaWidgetContext $context): void
-    {
+    private function record(
+        CaptchaWidgetContext $context,
+        PluginSettings $settings,
+    ): void {
         $this->action = $context->action();
         $this->formId = $context->formId();
+        $this->settings = $settings;
     }
 }

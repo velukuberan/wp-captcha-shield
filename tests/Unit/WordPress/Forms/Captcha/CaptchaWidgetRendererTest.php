@@ -7,54 +7,102 @@ namespace WpCaptchaShield\Tests\Unit\WordPress\Forms\Captcha;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
-use WpCaptchaShield\Domain\Configuration\GlobalCaptchaSetting;
 use WpCaptchaShield\Tests\Support\WordPress\Forms\Captcha\RecordingCaptchaWidget;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetContext;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
-use WpCaptchaShield\WordPress\Settings\GoogleRecaptchaSettings;
-use WpCaptchaShield\WordPress\Settings\HCaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
-use WpCaptchaShield\WordPress\Settings\TurnstileSettings;
 
 final class CaptchaWidgetRendererTest extends TestCase
 {
-    public function testItPassesTheProvidedContextToTheResolvedWidget(): void
+    public function testItEnqueuesTheResolvedWidgetWithTheProvidedContext(): void
     {
         $widget = new RecordingCaptchaWidget(
             CaptchaProvider::CloudflareTurnstile,
         );
-        $renderer = new CaptchaWidgetRenderer(
-            new CaptchaWidgetResolver([$widget]),
+
+        $renderer = $this->renderer($widget);
+
+        $renderer->enqueue(
+            EffectiveCaptchaProvider::enabled(
+                CaptchaProvider::CloudflareTurnstile,
+            ),
+            new CaptchaWidgetContext(
+                'wordpress_login',
+                'loginform',
+            ),
+            PluginSettings::defaults(),
         );
+
+        self::assertSame('enqueue', $widget->operation);
+        self::assertSame('wordpress_login', $widget->action);
+        self::assertSame('loginform', $widget->formId);
+    }
+
+    public function testItDoesNotEnqueueWhenCaptchaIsDisabled(): void
+    {
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::CloudflareTurnstile,
+        );
+
+        $renderer = $this->renderer($widget);
+
+        $renderer->enqueue(
+            EffectiveCaptchaProvider::disabled(),
+            new CaptchaWidgetContext(
+                'wordpress_login',
+                'loginform',
+            ),
+            PluginSettings::defaults(),
+        );
+
+        self::assertNull($widget->operation);
+        self::assertNull($widget->action);
+        self::assertNull($widget->formId);
+    }
+
+    public function testItRendersTheResolvedWidgetWithTheProvidedContext(): void
+    {
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::CloudflareTurnstile,
+        );
+
+        $renderer = $this->renderer($widget);
 
         $renderer->render(
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::CloudflareTurnstile,
             ),
-            new CaptchaWidgetContext('registration', 'registerform'),
-            $this->settings(),
+            new CaptchaWidgetContext(
+                'registration',
+                'registerform',
+            ),
+            PluginSettings::defaults(),
         );
 
+        self::assertSame('render', $widget->operation);
         self::assertSame('registration', $widget->action);
         self::assertSame('registerform', $widget->formId);
     }
 
-    public function testItDoesNothingWhenCaptchaIsDisabled(): void
+    public function testItDoesNotRenderWhenCaptchaIsDisabled(): void
     {
         $widget = new RecordingCaptchaWidget(
             CaptchaProvider::CloudflareTurnstile,
         );
-        $renderer = new CaptchaWidgetRenderer(
-            new CaptchaWidgetResolver([$widget]),
-        );
+
+        $renderer = $this->renderer($widget);
 
         $renderer->render(
             EffectiveCaptchaProvider::disabled(),
-            new CaptchaWidgetContext('registration', 'registerform'),
-            $this->settings(),
+            new CaptchaWidgetContext(
+                'registration',
+                'registerform',
+            ),
+            PluginSettings::defaults(),
         );
 
+        self::assertNull($widget->operation);
         self::assertNull($widget->action);
         self::assertNull($widget->formId);
     }
@@ -64,29 +112,42 @@ final class CaptchaWidgetRendererTest extends TestCase
         $widget = new RecordingCaptchaWidget(
             CaptchaProvider::HCaptcha,
         );
-        $renderer = new CaptchaWidgetRenderer(
-            new CaptchaWidgetResolver([$widget]),
+
+        $renderer = $this->renderer($widget);
+
+        $fieldName = $renderer->tokenFieldName(
+            EffectiveCaptchaProvider::enabled(
+                CaptchaProvider::HCaptcha,
+            ),
+            PluginSettings::defaults(),
         );
 
-        self::assertSame(
-            'recorded-token',
-            $renderer->tokenFieldName(
-                EffectiveCaptchaProvider::enabled(
-                    CaptchaProvider::HCaptcha,
-                ),
-                $this->settings(),
-            ),
-        );
+        self::assertSame('tokenFieldName', $widget->operation);
+        self::assertSame('recorded-token', $fieldName);
     }
 
-    private function settings(): PluginSettings
+    public function testItReturnsAnEmptyTokenFieldWhenCaptchaIsDisabled(): void
     {
-        return new PluginSettings(
-            GlobalCaptchaSetting::disabled(),
-            [],
-            TurnstileSettings::defaults(),
-            GoogleRecaptchaSettings::defaults(),
-            HCaptchaSettings::defaults(),
+        $widget = new RecordingCaptchaWidget(
+            CaptchaProvider::HCaptcha,
+        );
+
+        $renderer = $this->renderer($widget);
+
+        $fieldName = $renderer->tokenFieldName(
+            EffectiveCaptchaProvider::disabled(),
+            PluginSettings::defaults(),
+        );
+
+        self::assertSame('', $fieldName);
+        self::assertNull($widget->operation);
+    }
+
+    private function renderer(
+        RecordingCaptchaWidget $widget,
+    ): CaptchaWidgetRenderer {
+        return new CaptchaWidgetRenderer(
+            new CaptchaWidgetResolver([$widget]),
         );
     }
 }
