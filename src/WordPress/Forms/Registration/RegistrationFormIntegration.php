@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\WordPress\Forms\Login;
+namespace WpCaptchaShield\WordPress\Forms\Registration;
 
 use WP_Error;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
@@ -18,11 +18,11 @@ use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
-final class LoginFormIntegration
+final class RegistrationFormIntegration
 {
-    private const CAPTCHA_ACTION = 'wordpress_login';
+    private const CAPTCHA_ACTION = 'wordpress_registration';
 
-    private const FORM_ID = 'loginform';
+    private const FORM_ID = 'registerform';
 
     private ?PluginSettings $settings = null;
 
@@ -37,7 +37,7 @@ final class LoginFormIntegration
 
     public function enqueue(): void
     {
-        if (!$this->isLoginScreen()) {
+        if (!$this->isRegistrationScreen()) {
             return;
         }
 
@@ -70,21 +70,21 @@ final class LoginFormIntegration
         );
     }
 
-    public function authenticate(
-        mixed $user,
-        string $username,
-        string $password,
-    ): mixed {
-        unset($username, $password);
+    public function validate(
+        WP_Error $errors,
+        string $sanitizedUserLogin,
+        string $userEmail,
+    ): WP_Error {
+        unset($sanitizedUserLogin, $userEmail);
 
-        if ($user instanceof WP_Error || !$this->isLoginSubmission()) {
-            return $user;
+        if ($errors->has_errors()) {
+            return $errors;
         }
 
         $effectiveProvider = $this->effectiveProvider();
 
         if ($effectiveProvider->isDisabled()) {
-            return $user;
+            return $errors;
         }
 
         $result = $this->serviceFactory
@@ -102,13 +102,15 @@ final class LoginFormIntegration
             );
 
         if ($result->isSuccessful()) {
-            return $user;
+            return $errors;
         }
 
-        return new WP_Error(
+        $errors->add(
             'wp_captcha_shield_verification_failed',
             $this->visitorMessage($result),
         );
+
+        return $errors;
     }
 
     private function widgetContext(): CaptchaWidgetContext
@@ -127,7 +129,7 @@ final class LoginFormIntegration
     private function effectiveProvider(): EffectiveCaptchaProvider
     {
         $settings = $this->settings();
-        $formSetting = $settings->formSettings()[SupportedForms::WORDPRESS_LOGIN]
+        $formSetting = $settings->formSettings()[SupportedForms::WORDPRESS_REGISTRATION]
             ?? FormCaptchaSetting::useDefault();
 
         return $this->providerResolver->resolve(
@@ -137,16 +139,10 @@ final class LoginFormIntegration
     }
 
     /**
-     * WordPress core does not include a nonce in the login form.
-     * These values are read only during the native login POST request.
+     * WordPress core does not include a nonce in the registration form.
+     * The token is read only during the native registration request.
      */
     // phpcs:disable WordPress.Security.NonceVerification.Missing
-
-    private function isLoginSubmission(): bool
-    {
-        return $this->serverValue('REQUEST_METHOD') === 'POST'
-            && isset($_POST['log'], $_POST['pwd']);
-    }
 
     private function submittedToken(
         EffectiveCaptchaProvider $effectiveProvider,
@@ -180,9 +176,9 @@ final class LoginFormIntegration
         return sanitize_text_field(wp_unslash($_SERVER[$key]));
     }
 
-    private function isLoginScreen(): bool
+    private function isRegistrationScreen(): bool
     {
-        return ($GLOBALS['action'] ?? 'login') === 'login';
+        return ($GLOBALS['action'] ?? '') === 'register';
     }
 
     private function visitorMessage(VerificationResult $result): string
