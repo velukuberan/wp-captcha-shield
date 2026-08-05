@@ -42,13 +42,21 @@ final class SupportedFormsTest extends TestCase
             ->with('WordPress lost password', 'wp-captcha-shield')
             ->andReturn('WordPress lost password');
 
+        Functions\expect('__')
+            ->once()
+            ->with('WordPress comments', 'wp-captcha-shield')
+            ->andReturn('WordPress comments');
+
         self::assertSame(
             [
-                SupportedForms::WORDPRESS_LOGIN => 'WordPress login',
+                SupportedForms::WORDPRESS_LOGIN =>
+                    'WordPress login',
                 SupportedForms::WORDPRESS_REGISTRATION =>
                     'WordPress registration',
                 SupportedForms::WORDPRESS_LOST_PASSWORD =>
                     'WordPress lost password',
+                SupportedForms::WORDPRESS_COMMENTS =>
+                    'WordPress comments',
             ],
             (new SupportedForms())->labels(),
         );

@@ -12,6 +12,8 @@ final class SupportedForms
 
     public const WORDPRESS_LOST_PASSWORD = 'wordpress_lost_password';
 
+    public const WORDPRESS_COMMENTS = 'wordpress_comments';
+
     /**
      * @return array<string, string>
      */
@@ -28,6 +30,10 @@ final class SupportedForms
             ),
             self::WORDPRESS_LOST_PASSWORD => __(
                 'WordPress lost password',
+                'wp-captcha-shield',
+            ),
+            self::WORDPRESS_COMMENTS => __(
+                'WordPress comments',
                 'wp-captcha-shield',
             ),
         ];
