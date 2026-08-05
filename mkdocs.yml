@@ -38,7 +38,9 @@ nav:
   - Provider setup:
       - Overview: providers/index.md
       - Cloudflare Turnstile: providers/cloudflare-turnstile.md
-      - Google reCAPTCHA: providers/google-recaptcha.md
+      - Google reCAPTCHA:
+          - General setup: providers/google-recaptcha.md
+          - Invisible setup: providers/google-recaptcha-invisible.md
       - hCaptcha: providers/hcaptcha.md
   - Form setup:
       - WordPress login: forms/wordpress-login.md
