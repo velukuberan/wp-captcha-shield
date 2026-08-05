@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\Tests\Unit\WordPress\Forms\Login;
+namespace WpCaptchaShield\Tests\Unit\WordPress\Forms\Captcha;
 
-use Brain\Monkey;
-use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\Domain\Configuration\CaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\GlobalCaptchaSetting;
 use WpCaptchaShield\Tests\Support\WordPress\Forms\Captcha\RecordingCaptchaWidget;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetContext;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
-use WpCaptchaShield\WordPress\Forms\Login\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Settings\GoogleRecaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\HCaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
@@ -20,23 +19,7 @@ use WpCaptchaShield\WordPress\Settings\TurnstileSettings;
 
 final class CaptchaWidgetRendererTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Monkey\setUp();
-
-        Functions\when('wp_enqueue_style')->justReturn(null);
-    }
-
-    protected function tearDown(): void
-    {
-        Monkey\tearDown();
-
-        parent::tearDown();
-    }
-
-    public function testItPassesTheLoginContextToTheResolvedWidget(): void
+    public function testItPassesTheProvidedContextToTheResolvedWidget(): void
     {
         $widget = new RecordingCaptchaWidget(
             CaptchaProvider::CloudflareTurnstile,
@@ -49,11 +32,12 @@ final class CaptchaWidgetRendererTest extends TestCase
             EffectiveCaptchaProvider::enabled(
                 CaptchaProvider::CloudflareTurnstile,
             ),
+            new CaptchaWidgetContext('registration', 'registerform'),
             $this->settings(),
         );
 
-        self::assertSame('wordpress_login', $widget->action);
-        self::assertSame('loginform', $widget->formId);
+        self::assertSame('registration', $widget->action);
+        self::assertSame('registerform', $widget->formId);
     }
 
     public function testItDoesNothingWhenCaptchaIsDisabled(): void
@@ -67,6 +51,7 @@ final class CaptchaWidgetRendererTest extends TestCase
 
         $renderer->render(
             EffectiveCaptchaProvider::disabled(),
+            new CaptchaWidgetContext('registration', 'registerform'),
             $this->settings(),
         );
 
