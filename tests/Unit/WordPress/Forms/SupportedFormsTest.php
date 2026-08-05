@@ -37,11 +37,18 @@ final class SupportedFormsTest extends TestCase
             ->with('WordPress registration', 'wp-captcha-shield')
             ->andReturn('WordPress registration');
 
+        Functions\expect('__')
+            ->once()
+            ->with('WordPress lost password', 'wp-captcha-shield')
+            ->andReturn('WordPress lost password');
+
         self::assertSame(
             [
                 SupportedForms::WORDPRESS_LOGIN => 'WordPress login',
                 SupportedForms::WORDPRESS_REGISTRATION =>
                     'WordPress registration',
+                SupportedForms::WORDPRESS_LOST_PASSWORD =>
+                    'WordPress lost password',
             ],
             (new SupportedForms())->labels(),
         );

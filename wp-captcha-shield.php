@@ -31,6 +31,8 @@ use WpCaptchaShield\WordPress\Forms\Captcha\GoogleRecaptchaWidget;
 use WpCaptchaShield\WordPress\Forms\Captcha\HCaptchaWidget;
 use WpCaptchaShield\WordPress\Forms\Login\LoginFormIntegration;
 use WpCaptchaShield\WordPress\Forms\Login\LoginFormRegistrar;
+use WpCaptchaShield\WordPress\Forms\LostPassword\LostPasswordFormIntegration;
+use WpCaptchaShield\WordPress\Forms\LostPassword\LostPasswordFormRegistrar;
 use WpCaptchaShield\WordPress\Forms\Registration\RegistrationFormIntegration;
 use WpCaptchaShield\WordPress\Forms\Registration\RegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\Forms\SupportedForms;
@@ -93,3 +95,16 @@ $registrationFormRegistrar = new RegistrationFormRegistrar(
     $registrationFormIntegration,
 );
 $registrationFormRegistrar->registerHooks();
+
+$lostPasswordFormIntegration = new LostPasswordFormIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+
+$lostPasswordFormRegistrar = new LostPasswordFormRegistrar(
+    $lostPasswordFormIntegration,
+);
+$lostPasswordFormRegistrar->registerHooks();

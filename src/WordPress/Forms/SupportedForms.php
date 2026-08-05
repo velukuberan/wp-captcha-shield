@@ -10,6 +10,8 @@ final class SupportedForms
 
     public const WORDPRESS_REGISTRATION = 'wordpress_registration';
 
+    public const WORDPRESS_LOST_PASSWORD = 'wordpress_lost_password';
+
     /**
      * @return array<string, string>
      */
@@ -22,6 +24,10 @@ final class SupportedForms
             ),
             self::WORDPRESS_REGISTRATION => __(
                 'WordPress registration',
+                'wp-captcha-shield',
+            ),
+            self::WORDPRESS_LOST_PASSWORD => __(
+                'WordPress lost password',
                 'wp-captcha-shield',
             ),
         ];
