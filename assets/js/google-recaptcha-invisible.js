@@ -4,6 +4,10 @@
   var WIDGET_SELECTOR = ".wp-captcha-shield-google-invisible-widget";
 
   function initialize(container) {
+    if (container.dataset.initialized === "true") {
+      return;
+    }
+
     var formId = container.dataset.formId;
     var tokenId = container.dataset.tokenId;
     var siteKey = container.dataset.siteKey;
@@ -18,7 +22,7 @@
       return;
     }
 
-    grecaptcha.enterprise.ready(function () {
+    try {
       widgetId = grecaptcha.enterprise.render(container, {
         sitekey: siteKey,
         size: "invisible",
@@ -37,7 +41,12 @@
           requestingToken = false;
         },
       });
-    });
+
+      container.dataset.initialized = "true";
+    } catch (error) {
+      widgetId = null;
+      return;
+    }
 
     form.addEventListener("submit", function (event) {
       if (tokenField.value !== "") {
@@ -56,6 +65,7 @@
       grecaptcha.enterprise.execute(widgetId).catch(function () {
         requestingToken = false;
         tokenField.value = "";
+        grecaptcha.enterprise.reset(widgetId);
       });
     });
   }
@@ -66,7 +76,8 @@
       typeof grecaptcha.enterprise !== "undefined" &&
       typeof grecaptcha.enterprise.ready === "function" &&
       typeof grecaptcha.enterprise.render === "function" &&
-      typeof grecaptcha.enterprise.execute === "function"
+      typeof grecaptcha.enterprise.execute === "function" &&
+      typeof grecaptcha.enterprise.reset === "function"
     );
   }
 
@@ -84,11 +95,27 @@
     form.submit();
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initializeWidgets(attempt) {
     if (!googleIsAvailable()) {
+      if (attempt < 50) {
+        window.setTimeout(function () {
+          initializeWidgets(attempt + 1);
+        }, 100);
+      }
+
       return;
     }
 
     document.querySelectorAll(WIDGET_SELECTOR).forEach(initialize);
-  });
+  }
+
+  function startInitialization() {
+    initializeWidgets(0);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startInitialization);
+  } else {
+    startInitialization();
+  }
 })();
