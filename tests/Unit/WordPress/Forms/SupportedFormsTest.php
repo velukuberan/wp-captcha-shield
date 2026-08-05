@@ -25,16 +25,23 @@ final class SupportedFormsTest extends TestCase
         parent::tearDown();
     }
 
-    public function testItContainsTheWordPressLoginForm(): void
+    public function testItContainsTheSupportedWordPressForms(): void
     {
         Functions\expect('__')
             ->once()
             ->with('WordPress login', 'wp-captcha-shield')
             ->andReturn('WordPress login');
 
+        Functions\expect('__')
+            ->once()
+            ->with('WordPress registration', 'wp-captcha-shield')
+            ->andReturn('WordPress registration');
+
         self::assertSame(
             [
                 SupportedForms::WORDPRESS_LOGIN => 'WordPress login',
+                SupportedForms::WORDPRESS_REGISTRATION =>
+                    'WordPress registration',
             ],
             (new SupportedForms())->labels(),
         );
