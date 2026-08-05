@@ -12,12 +12,18 @@ use WpCaptchaShield\Domain\Verification\CaptchaVerificationRequest;
 use WpCaptchaShield\Domain\Verification\VerificationResult;
 use WpCaptchaShield\WordPress\Bootstrap\CaptchaServiceFactory;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurationFactory;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetContext;
+use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
 final class LoginFormIntegration
 {
+    private const CAPTCHA_ACTION = 'wordpress_login';
+
+    private const FORM_ID = 'loginform';
+
     private ?PluginSettings $settings = null;
 
     public function __construct(
@@ -31,8 +37,22 @@ final class LoginFormIntegration
 
     public function enqueue(): void
     {
+        $effectiveProvider = $this->effectiveProvider();
+
+        if ($effectiveProvider->isDisabled()) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'wp-captcha-shield-login',
+            WP_CAPTCHA_SHIELD_URL . 'assets/css/login.css',
+            [],
+            WP_CAPTCHA_SHIELD_VERSION,
+        );
+
         $this->widgetRenderer->enqueue(
-            $this->effectiveProvider(),
+            $effectiveProvider,
+            $this->widgetContext(),
             $this->settings(),
         );
     }
@@ -41,6 +61,7 @@ final class LoginFormIntegration
     {
         $this->widgetRenderer->render(
             $this->effectiveProvider(),
+            $this->widgetContext(),
             $this->settings(),
         );
     }
@@ -83,6 +104,14 @@ final class LoginFormIntegration
         return new WP_Error(
             'wp_captcha_shield_verification_failed',
             $this->visitorMessage($result),
+        );
+    }
+
+    private function widgetContext(): CaptchaWidgetContext
+    {
+        return new CaptchaWidgetContext(
+            self::CAPTCHA_ACTION,
+            self::FORM_ID,
         );
     }
 

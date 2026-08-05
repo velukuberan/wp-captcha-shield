@@ -2,19 +2,13 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\WordPress\Forms\Login;
+namespace WpCaptchaShield\WordPress\Forms\Captcha;
 
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
-use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetContext;
-use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 
 final class CaptchaWidgetRenderer
 {
-    private const CAPTCHA_ACTION = 'wordpress_login';
-
-    private const FORM_ID = 'loginform';
-
     public function __construct(
         private readonly CaptchaWidgetResolver $widgetResolver,
     ) {
@@ -22,6 +16,7 @@ final class CaptchaWidgetRenderer
 
     public function enqueue(
         EffectiveCaptchaProvider $effectiveProvider,
+        CaptchaWidgetContext $context,
         PluginSettings $settings,
     ): void {
         $provider = $effectiveProvider->provider();
@@ -30,20 +25,14 @@ final class CaptchaWidgetRenderer
             return;
         }
 
-        wp_enqueue_style(
-            'wp-captcha-shield-login',
-            WP_CAPTCHA_SHIELD_URL . 'assets/css/login.css',
-            [],
-            WP_CAPTCHA_SHIELD_VERSION,
-        );
-
         $this->widgetResolver
             ->resolve($provider)
-            ->enqueue($this->context(), $settings);
+            ->enqueue($context, $settings);
     }
 
     public function render(
         EffectiveCaptchaProvider $effectiveProvider,
+        CaptchaWidgetContext $context,
         PluginSettings $settings,
     ): void {
         $provider = $effectiveProvider->provider();
@@ -54,7 +43,7 @@ final class CaptchaWidgetRenderer
 
         $this->widgetResolver
             ->resolve($provider)
-            ->render($this->context(), $settings);
+            ->render($context, $settings);
     }
 
     public function tokenFieldName(
@@ -70,13 +59,5 @@ final class CaptchaWidgetRenderer
         return $this->widgetResolver
             ->resolve($provider)
             ->tokenFieldName($settings);
-    }
-
-    private function context(): CaptchaWidgetContext
-    {
-        return new CaptchaWidgetContext(
-            self::CAPTCHA_ACTION,
-            self::FORM_ID,
-        );
     }
 }
