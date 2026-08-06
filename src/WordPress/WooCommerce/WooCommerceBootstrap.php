@@ -5,21 +5,20 @@ declare(strict_types=1);
 namespace WpCaptchaShield\WordPress\WooCommerce;
 
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 
 final class WooCommerceBootstrap
 {
     public function __construct(
         private readonly WooCommerceAvailability $availability,
         private readonly WooCommerceLoginFormRegistrar $loginFormRegistrar,
+        private readonly WooCommerceRegistrationFormRegistrar $registrationFormRegistrar,
     ) {
     }
 
     public function registerHooks(): void
     {
-        add_action(
-            'plugins_loaded',
-            [$this, 'initialize'],
-        );
+        add_action('plugins_loaded', [$this, 'initialize']);
     }
 
     public function initialize(): void
@@ -27,7 +26,7 @@ final class WooCommerceBootstrap
         if (!$this->availability->isAvailable()) {
             return;
         }
-
         $this->loginFormRegistrar->registerHooks();
+        $this->registrationFormRegistrar->registerHooks();
     }
 }

@@ -14,56 +14,44 @@ final class SupportedFormsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
         Monkey\setUp();
     }
 
     protected function tearDown(): void
     {
         Monkey\tearDown();
-
         parent::tearDown();
     }
 
-    public function testItContainsTheSupportedWordPressForms(): void
+    public function testItContainsTheSupportedForms(): void
     {
-        Functions\expect('__')
-            ->once()
-            ->with('WordPress login', 'wp-captcha-shield')
-            ->andReturn('WordPress login');
+        $labels = [
+            'WordPress login',
+            'WordPress registration',
+            'WordPress lost password',
+            'WordPress comments',
+            'WooCommerce login',
+            'WooCommerce registration',
+        ];
 
-        Functions\expect('__')
-            ->once()
-            ->with('WordPress registration', 'wp-captcha-shield')
-            ->andReturn('WordPress registration');
-
-        Functions\expect('__')
-            ->once()
-            ->with('WordPress lost password', 'wp-captcha-shield')
-            ->andReturn('WordPress lost password');
-
-        Functions\expect('__')
-            ->once()
-            ->with('WordPress comments', 'wp-captcha-shield')
-            ->andReturn('WordPress comments');
-
-        Functions\expect('__')
-            ->once()
-            ->with('WooCommerce login', 'wp-captcha-shield')
-            ->andReturn('WooCommerce login');
+        foreach ($labels as $label) {
+            Functions\expect('__')
+                ->once()
+                ->with($label, 'wp-captcha-shield')
+                ->andReturn($label);
+        }
 
         self::assertSame(
             [
-                SupportedForms::WORDPRESS_LOGIN =>
-                    'WordPress login',
+                SupportedForms::WORDPRESS_LOGIN => 'WordPress login',
                 SupportedForms::WORDPRESS_REGISTRATION =>
                     'WordPress registration',
                 SupportedForms::WORDPRESS_LOST_PASSWORD =>
                     'WordPress lost password',
-                SupportedForms::WORDPRESS_COMMENTS =>
-                    'WordPress comments',
-                SupportedForms::WOOCOMMERCE_LOGIN =>
-                    'WooCommerce login',
+                SupportedForms::WORDPRESS_COMMENTS => 'WordPress comments',
+                SupportedForms::WOOCOMMERCE_LOGIN => 'WooCommerce login',
+                SupportedForms::WOOCOMMERCE_REGISTRATION =>
+                    'WooCommerce registration',
             ],
             (new SupportedForms())->labels(),
         );
