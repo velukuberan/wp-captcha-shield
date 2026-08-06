@@ -40,6 +40,8 @@ use WpCaptchaShield\WordPress\Forms\Registration\RegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
+use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
+use WpCaptchaShield\WordPress\WooCommerce\WooCommerceBootstrap;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -123,3 +125,8 @@ $commentFormRegistrar = new CommentFormRegistrar(
     $commentFormIntegration,
 );
 $commentFormRegistrar->registerHooks();
+
+$wooCommerceBootstrap = new WooCommerceBootstrap(
+    new WooCommerceAvailability(),
+);
+$wooCommerceBootstrap->registerHooks();
