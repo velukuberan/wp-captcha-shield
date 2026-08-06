@@ -20,6 +20,8 @@ use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
@@ -93,6 +95,20 @@ final class WooCommerceBootstrapTest extends TestCase
                 10,
                 3,
             );
+        Functions\expect('add_action')
+            ->once()
+            ->with(
+                'woocommerce_lostpassword_form',
+                Mockery::type('array'),
+            );
+        Functions\expect('add_action')
+            ->once()
+            ->with(
+                'lostpassword_post',
+                Mockery::type('array'),
+                30,
+                2,
+            );
 
         $this->bootstrap()->initialize();
 
@@ -124,12 +140,22 @@ final class WooCommerceBootstrapTest extends TestCase
             $serviceFactory,
             $widgetRenderer,
         );
+        $lostPasswordIntegration = new WooCommerceLostPasswordFormIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
+        );
 
         return new WooCommerceBootstrap(
             new WooCommerceAvailability(),
             new WooCommerceLoginFormRegistrar($loginIntegration),
             new WooCommerceRegistrationFormRegistrar(
                 $registrationIntegration,
+            ),
+            new WooCommerceLostPasswordFormRegistrar(
+                $lostPasswordIntegration,
             ),
         );
     }

@@ -32,6 +32,7 @@ final class SupportedFormsTest extends TestCase
             'WordPress comments',
             'WooCommerce login',
             'WooCommerce registration',
+            'WooCommerce lost password',
         ];
 
         foreach ($labels as $label) {
@@ -52,6 +53,8 @@ final class SupportedFormsTest extends TestCase
                 SupportedForms::WOOCOMMERCE_LOGIN => 'WooCommerce login',
                 SupportedForms::WOOCOMMERCE_REGISTRATION =>
                     'WooCommerce registration',
+                SupportedForms::WOOCOMMERCE_LOST_PASSWORD =>
+                    'WooCommerce lost password',
             ],
             (new SupportedForms())->labels(),
         );
