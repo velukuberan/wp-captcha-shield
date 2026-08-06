@@ -14,6 +14,8 @@ final class SupportedForms
 
     public const WORDPRESS_COMMENTS = 'wordpress_comments';
 
+    public const WOOCOMMERCE_LOGIN = 'woocommerce_login';
+
     /**
      * @return array<string, string>
      */
@@ -34,6 +36,10 @@ final class SupportedForms
             ),
             self::WORDPRESS_COMMENTS => __(
                 'WordPress comments',
+                'wp-captcha-shield',
+            ),
+            self::WOOCOMMERCE_LOGIN => __(
+                'WooCommerce login',
                 'wp-captcha-shield',
             ),
         ];

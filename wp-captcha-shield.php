@@ -40,6 +40,8 @@ use WpCaptchaShield\WordPress\Forms\Registration\RegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
+use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceBootstrap;
 
@@ -126,7 +128,20 @@ $commentFormRegistrar = new CommentFormRegistrar(
 );
 $commentFormRegistrar->registerHooks();
 
+$wooCommerceLoginFormIntegration = new WooCommerceLoginFormIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+
+$wooCommerceLoginFormRegistrar = new WooCommerceLoginFormRegistrar(
+    $wooCommerceLoginFormIntegration,
+);
+
 $wooCommerceBootstrap = new WooCommerceBootstrap(
     new WooCommerceAvailability(),
+    $wooCommerceLoginFormRegistrar,
 );
 $wooCommerceBootstrap->registerHooks();

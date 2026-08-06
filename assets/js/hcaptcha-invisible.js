@@ -6,7 +6,7 @@
   function initialize(container) {
     var formId = container.dataset.formId;
     var siteKey = container.dataset.siteKey;
-    var form = document.getElementById(formId);
+    var form = findForm(container, formId);
     var widgetId = null;
     var requestingToken = false;
     var submitter = null;
@@ -53,6 +53,18 @@
         requestingToken = false;
       }
     });
+  }
+
+  function findForm(element, formId) {
+    if (formId) {
+      var configuredForm = document.getElementById(formId);
+
+      if (configuredForm) {
+        return configuredForm;
+      }
+    }
+
+    return element.closest("form");
   }
 
   function resumeSubmission(form, submitter) {
