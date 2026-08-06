@@ -12,8 +12,8 @@
     var tokenId = container.dataset.tokenId;
     var siteKey = container.dataset.siteKey;
     var action = container.dataset.action;
-    var form = document.getElementById(formId);
-    var tokenField = document.getElementById(tokenId);
+    var form = findForm(container, formId);
+    var tokenField = findTokenField(container, tokenId);
     var widgetId = null;
     var requestingToken = false;
     var submitter = null;
@@ -68,6 +68,36 @@
         grecaptcha.enterprise.reset(widgetId);
       });
     });
+  }
+
+  function findForm(element, formId) {
+    if (formId) {
+      var configuredForm = document.getElementById(formId);
+
+      if (configuredForm) {
+        return configuredForm;
+      }
+    }
+
+    return element.closest("form");
+  }
+
+  function findTokenField(container, tokenId) {
+    if (tokenId) {
+      var configuredTokenField = document.getElementById(tokenId);
+
+      if (configuredTokenField) {
+        return configuredTokenField;
+      }
+    }
+
+    var form = container.closest("form");
+
+    if (!form) {
+      return null;
+    }
+
+    return form.querySelector('input[name="wp_captcha_shield_google_token"]');
   }
 
   function googleIsAvailable() {

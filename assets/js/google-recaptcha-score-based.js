@@ -7,7 +7,7 @@
         var formId = tokenField.dataset.formId;
         var siteKey = tokenField.dataset.siteKey;
         var action = tokenField.dataset.action;
-        var form = document.getElementById(formId);
+        var form = findForm(tokenField, formId);
         var requestingToken = false;
 
         if (!form || !siteKey || !action) {
@@ -42,6 +42,18 @@
                 });
             });
         });
+    }
+
+    function findForm(element, formId) {
+        if (formId) {
+            var configuredForm = document.getElementById(formId);
+
+            if (configuredForm) {
+                return configuredForm;
+            }
+        }
+
+        return element.closest('form');
     }
 
     function googleIsAvailable() {

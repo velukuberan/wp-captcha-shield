@@ -47,6 +47,11 @@ final class SupportedFormsTest extends TestCase
             ->with('WordPress comments', 'wp-captcha-shield')
             ->andReturn('WordPress comments');
 
+        Functions\expect('__')
+            ->once()
+            ->with('WooCommerce login', 'wp-captcha-shield')
+            ->andReturn('WooCommerce login');
+
         self::assertSame(
             [
                 SupportedForms::WORDPRESS_LOGIN =>
@@ -57,6 +62,8 @@ final class SupportedFormsTest extends TestCase
                     'WordPress lost password',
                 SupportedForms::WORDPRESS_COMMENTS =>
                     'WordPress comments',
+                SupportedForms::WOOCOMMERCE_LOGIN =>
+                    'WooCommerce login',
             ],
             (new SupportedForms())->labels(),
         );

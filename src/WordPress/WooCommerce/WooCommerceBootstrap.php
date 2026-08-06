@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace WpCaptchaShield\WordPress\WooCommerce;
 
+use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+
 final class WooCommerceBootstrap
 {
     public function __construct(
         private readonly WooCommerceAvailability $availability,
+        private readonly WooCommerceLoginFormRegistrar $loginFormRegistrar,
     ) {
     }
 
@@ -25,9 +28,6 @@ final class WooCommerceBootstrap
             return;
         }
 
-        /*
-         * WooCommerce form integrations will be initialized here by their
-         * respective implementation tickets.
-         */
+        $this->loginFormRegistrar->registerHooks();
     }
 }
