@@ -42,6 +42,8 @@ use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceBootstrap;
 
@@ -85,7 +87,6 @@ $loginFormIntegration = new LoginFormIntegration(
     $serviceFactory,
     $widgetRenderer,
 );
-
 $loginFormRegistrar = new LoginFormRegistrar($loginFormIntegration);
 $loginFormRegistrar->registerHooks();
 
@@ -96,7 +97,6 @@ $registrationFormIntegration = new RegistrationFormIntegration(
     $serviceFactory,
     $widgetRenderer,
 );
-
 $registrationFormRegistrar = new RegistrationFormRegistrar(
     $registrationFormIntegration,
 );
@@ -109,7 +109,6 @@ $lostPasswordFormIntegration = new LostPasswordFormIntegration(
     $serviceFactory,
     $widgetRenderer,
 );
-
 $lostPasswordFormRegistrar = new LostPasswordFormRegistrar(
     $lostPasswordFormIntegration,
 );
@@ -122,10 +121,7 @@ $commentFormIntegration = new CommentFormIntegration(
     $serviceFactory,
     $widgetRenderer,
 );
-
-$commentFormRegistrar = new CommentFormRegistrar(
-    $commentFormIntegration,
-);
+$commentFormRegistrar = new CommentFormRegistrar($commentFormIntegration);
 $commentFormRegistrar->registerHooks();
 
 $wooCommerceLoginFormIntegration = new WooCommerceLoginFormIntegration(
@@ -135,13 +131,24 @@ $wooCommerceLoginFormIntegration = new WooCommerceLoginFormIntegration(
     $serviceFactory,
     $widgetRenderer,
 );
-
 $wooCommerceLoginFormRegistrar = new WooCommerceLoginFormRegistrar(
     $wooCommerceLoginFormIntegration,
+);
+
+$wooCommerceRegistrationFormIntegration = new WooCommerceRegistrationFormIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+$wooCommerceRegistrationFormRegistrar = new WooCommerceRegistrationFormRegistrar(
+    $wooCommerceRegistrationFormIntegration,
 );
 
 $wooCommerceBootstrap = new WooCommerceBootstrap(
     new WooCommerceAvailability(),
     $wooCommerceLoginFormRegistrar,
+    $wooCommerceRegistrationFormRegistrar,
 );
 $wooCommerceBootstrap->registerHooks();

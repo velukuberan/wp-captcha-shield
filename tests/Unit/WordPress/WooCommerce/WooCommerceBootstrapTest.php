@@ -20,6 +20,8 @@ use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceBootstrap;
 
@@ -45,13 +47,9 @@ final class WooCommerceBootstrapTest extends TestCase
 
         Functions\expect('add_action')
             ->once()
-            ->with(
-                'plugins_loaded',
-                [$bootstrap, 'initialize'],
-            );
+            ->with('plugins_loaded', [$bootstrap, 'initialize']);
 
         $bootstrap->registerHooks();
-
         $this->addToAssertionCount(1);
     }
 
@@ -64,24 +62,18 @@ final class WooCommerceBootstrapTest extends TestCase
 
         $this->bootstrap()->initialize();
 
-        self::assertFalse(
-            class_exists('WooCommerce'),
-        );
+        self::assertFalse(class_exists('WooCommerce'));
     }
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function testItRegistersLoginHooksWhenWooCommerceIsAvailable(): void
+    public function testItRegistersAllHooksWhenWooCommerceIsAvailable(): void
     {
         eval('class WooCommerce {}');
 
         Functions\expect('add_action')
             ->once()
-            ->with(
-                'woocommerce_login_form',
-                Mockery::type('array'),
-            );
-
+            ->with('woocommerce_login_form', Mockery::type('array'));
         Functions\expect('add_filter')
             ->once()
             ->with(
@@ -90,31 +82,55 @@ final class WooCommerceBootstrapTest extends TestCase
                 10,
                 3,
             );
+        Functions\expect('add_action')
+            ->once()
+            ->with('woocommerce_register_form', Mockery::type('array'));
+        Functions\expect('add_filter')
+            ->once()
+            ->with(
+                'woocommerce_registration_errors',
+                Mockery::type('array'),
+                10,
+                3,
+            );
 
         $this->bootstrap()->initialize();
 
-        self::assertTrue(
-            class_exists('WooCommerce'),
-        );
+        self::assertTrue(class_exists('WooCommerce'));
     }
 
     private function bootstrap(): WooCommerceBootstrap
     {
-        $integration = new WooCommerceLoginFormIntegration(
-            Mockery::mock(SettingsRepository::class),
-            new EffectiveCaptchaProviderResolver(),
-            new CaptchaProviderConfigurationFactory(),
-            new CaptchaServiceFactory(
-                Mockery::mock(HttpClient::class),
-            ),
-            new CaptchaWidgetRenderer(
-                new CaptchaWidgetResolver([]),
-            ),
+        $repository = Mockery::mock(SettingsRepository::class);
+        $httpClient = Mockery::mock(HttpClient::class);
+        $providerResolver = new EffectiveCaptchaProviderResolver();
+        $configurationFactory = new CaptchaProviderConfigurationFactory();
+        $serviceFactory = new CaptchaServiceFactory($httpClient);
+        $widgetRenderer = new CaptchaWidgetRenderer(
+            new CaptchaWidgetResolver([]),
+        );
+
+        $loginIntegration = new WooCommerceLoginFormIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
+        );
+        $registrationIntegration = new WooCommerceRegistrationFormIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
         );
 
         return new WooCommerceBootstrap(
             new WooCommerceAvailability(),
-            new WooCommerceLoginFormRegistrar($integration),
+            new WooCommerceLoginFormRegistrar($loginIntegration),
+            new WooCommerceRegistrationFormRegistrar(
+                $registrationIntegration,
+            ),
         );
     }
 }
