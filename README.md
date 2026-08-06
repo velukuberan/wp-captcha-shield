@@ -10,7 +10,7 @@ The plugin uses a provider-neutral configuration model:
 - configure supported modes independently for each provider;
 - keep CAPTCHA providers independent from WordPress and WooCommerce form integrations.
 
-> **Project status:** Active development. The provider configuration, rendering, and server-side verification foundations are implemented for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha. WordPress login is the currently implemented form integration. The plugin is not ready for production use while the remaining WordPress and WooCommerce integrations, end-to-end coverage, packaging, and release validation are still being completed.
+> **Project status:** Active development. The provider configuration, rendering, and server-side verification foundations are implemented for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha. WordPress login, registration, lost password, and comment forms are currently implemented. The plugin is not ready for production use while WooCommerce integrations, end-to-end coverage, packaging, and release validation are still being completed.
 
 ## Implemented CAPTCHA providers
 
@@ -52,22 +52,42 @@ Passive behaviour is controlled by the hCaptcha account and site-key configurati
 #### WordPress
 
 - Login
-
-### Planned
-
-#### WordPress
-
 - Registration
 - Lost password
 - Comments
+
+### Planned
 
 #### WooCommerce
 
 - Login
 - Registration
 - Lost password
-- Checkout
 - Product reviews
+- Classic checkout
+- Block checkout
+
+WooCommerce login may cover more than one presentation of the customer login form, including the My Account login form and the returning-customer login shown during checkout.
+
+Classic checkout and block checkout share one user-facing WooCommerce checkout configuration, but they require separate integration implementations because they use different rendering and submission mechanisms.
+
+WooCommerce product reviews remain separate from general WordPress comments so that site administrators can configure them independently.
+
+## WooCommerce implementation roadmap
+
+The planned WooCommerce development sequence is:
+
+- WCS-053 — Update README
+- WCS-054 — WooCommerce bootstrap and availability
+- WCS-055 — WooCommerce login
+- WCS-056 — WooCommerce registration
+- WCS-057 — WooCommerce lost password
+- WCS-058 — WooCommerce product reviews
+- WCS-059 — Classic WooCommerce checkout
+- WCS-060 — WooCommerce block checkout
+- WCS-061 — WooCommerce integration documentation
+
+WooCommerce-specific integrations must not initialize when WooCommerce is inactive.
 
 ## Configuration model
 
@@ -260,7 +280,17 @@ See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing p
 
 ## Testing strategy
 
-The current PHP test suite covers the implemented Domain, provider, settings, WordPress adapter, widget, and WordPress login integration behaviour.
+The current PHP test suite covers the implemented:
+
+- Domain behaviour;
+- provider verification behaviour;
+- settings persistence and configuration;
+- WordPress HTTP and application adapters;
+- shared CAPTCHA widget rendering;
+- WordPress login integration;
+- WordPress registration integration;
+- WordPress lost-password integration;
+- WordPress comments integration.
 
 The complete version 1 testing strategy also requires:
 
@@ -270,6 +300,8 @@ The complete version 1 testing strategy also requires:
 - manual verification against live CAPTCHA providers.
 
 Automated tests must not call live CAPTCHA services or attempt to solve live CAPTCHA challenges.
+
+WooCommerce integration tests must cover both classic and block-based checkout behaviour where their technical boundaries differ.
 
 ## Code coverage
 
@@ -300,7 +332,7 @@ Codecov reports two different measurements:
 
 Project coverage is initially informational. Patch coverage is used to identify newly introduced or changed production code that lacks meaningful tests.
 
-Coverage percentages do not replace behavioural testing, architecture review, static analysis, coding-standard checks, WordPress integration tests, or manual provider verification.
+Coverage percentages do not replace behavioural testing, architecture review, static analysis, coding-standard checks, WordPress integration tests, WooCommerce integration tests, or manual provider verification.
 
 ## Data cleanup
 
