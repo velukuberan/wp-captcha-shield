@@ -1,0 +1,49 @@
+# Version control & dev tooling
+/.git
+/.github
+/.gitignore
+/.gitattributes
+/.editorconfig
+/.vscode
+/.distignore
+
+# Build artefacts (this script's own output)
+/build
+/coverage
+
+# Composer dev-only files (composer.json is kept — harmless & small)
+/composer.lock
+
+# Tests & QA config
+/tests
+/phpunit.xml
+/phpunit.xml.dist
+/phpcs.xml
+/phpstan.neon
+/codecov.yml
+
+# Project-level docs (not shipped to end users)
+/docs
+/mkdocs.yml
+/requirements-docs.txt
+/ARCHITECTURE.md
+/TECHNICAL_REQUIREMENTS.md
+/CODING_STANDARDS.md
+/CONTRIBUTING.md
+
+# Dev-only fixtures
+/custom-theme
+
+# Local scripts
+/bin
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+
+# Node (if you add any front-end tooling later)
+/node_modules
+/package-lock.json
+/package.json
