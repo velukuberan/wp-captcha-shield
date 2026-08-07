@@ -2,29 +2,23 @@
     'use strict';
 
     var TOKEN_SELECTOR = '.wp-captcha-shield-google-score-token';
+    var REQUEST_TOKEN_EVENT = 'wp-captcha-shield:request-token';
 
     function initialize(tokenField) {
         var formId = tokenField.dataset.formId;
         var siteKey = tokenField.dataset.siteKey;
         var action = tokenField.dataset.action;
         var form = findForm(tokenField, formId);
+        var blockRoot = tokenField.closest('[data-wp-captcha-shield-block-checkout]');
         var requestingToken = false;
 
-        if (!form || !siteKey || !action) {
+        if ((!form && !blockRoot) || !siteKey || !action) {
             return;
         }
 
-        form.addEventListener('submit', function (event) {
-            var submitter = event.submitter || null;
-
-            if (tokenField.value !== '') {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopImmediatePropagation();
-
+        function requestToken(onSuccess, onFailure) {
             if (requestingToken || !googleIsAvailable()) {
+                onFailure();
                 return;
             }
 
@@ -36,13 +30,43 @@
                 }).then(function (token) {
                     tokenField.value = token;
                     requestingToken = false;
-                    resumeSubmission(form, submitter);
+                    onSuccess(token);
                 }).catch(function () {
                     requestingToken = false;
                     tokenField.value = '';
+                    onFailure();
                 });
             });
-        }, true);
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                var submitter = event.submitter || null;
+
+                if (tokenField.value !== '') {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                requestToken(function () {
+                    resumeSubmission(form, submitter);
+                }, function () {});
+            }, true);
+        }
+
+        document.addEventListener(REQUEST_TOKEN_EVENT, function (event) {
+            var detail = event.detail;
+
+            if (!detail || !detail.root || !detail.root.contains(tokenField)) {
+                return;
+            }
+
+            detail.handled = true;
+            tokenField.value = '';
+            requestToken(detail.complete, detail.fail);
+        });
     }
 
     function findForm(element, formId) {
