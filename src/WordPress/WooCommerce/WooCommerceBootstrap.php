@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpCaptchaShield\WordPress\WooCommerce;
 
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormRegistrar;
@@ -17,6 +18,7 @@ final class WooCommerceBootstrap
         private readonly WooCommerceRegistrationFormRegistrar $registrationFormRegistrar,
         private readonly WooCommerceLostPasswordFormRegistrar $lostPasswordFormRegistrar,
         private readonly WooCommerceProductReviewFormRegistrar $productReviewFormRegistrar,
+        private readonly WooCommerceClassicCheckoutRegistrar $classicCheckoutRegistrar,
     ) {
     }
 
@@ -35,5 +37,6 @@ final class WooCommerceBootstrap
         $this->registrationFormRegistrar->registerHooks();
         $this->lostPasswordFormRegistrar->registerHooks();
         $this->productReviewFormRegistrar->registerHooks();
+        $this->classicCheckoutRegistrar->registerHooks();
     }
 }

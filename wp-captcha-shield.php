@@ -40,6 +40,8 @@ use WpCaptchaShield\WordPress\Forms\Registration\RegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
@@ -173,11 +175,23 @@ $wooCommerceProductReviewFormRegistrar = new WooCommerceProductReviewFormRegistr
     $wooCommerceProductReviewFormIntegration,
 );
 
+$wooCommerceClassicCheckoutIntegration = new WooCommerceClassicCheckoutIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+$wooCommerceClassicCheckoutRegistrar = new WooCommerceClassicCheckoutRegistrar(
+    $wooCommerceClassicCheckoutIntegration,
+);
+
 $wooCommerceBootstrap = new WooCommerceBootstrap(
     new WooCommerceAvailability(),
     $wooCommerceLoginFormRegistrar,
     $wooCommerceRegistrationFormRegistrar,
     $wooCommerceLostPasswordFormRegistrar,
     $wooCommerceProductReviewFormRegistrar,
+    $wooCommerceClassicCheckoutRegistrar,
 );
 $wooCommerceBootstrap->registerHooks();
