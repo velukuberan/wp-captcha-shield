@@ -6,6 +6,7 @@ namespace WpCaptchaShield\WordPress\WooCommerce;
 
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 
 final class WooCommerceBootstrap
@@ -15,6 +16,7 @@ final class WooCommerceBootstrap
         private readonly WooCommerceLoginFormRegistrar $loginFormRegistrar,
         private readonly WooCommerceRegistrationFormRegistrar $registrationFormRegistrar,
         private readonly WooCommerceLostPasswordFormRegistrar $lostPasswordFormRegistrar,
+        private readonly WooCommerceProductReviewFormRegistrar $productReviewFormRegistrar,
     ) {
     }
 
@@ -32,5 +34,6 @@ final class WooCommerceBootstrap
         $this->loginFormRegistrar->registerHooks();
         $this->registrationFormRegistrar->registerHooks();
         $this->lostPasswordFormRegistrar->registerHooks();
+        $this->productReviewFormRegistrar->registerHooks();
     }
 }

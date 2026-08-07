@@ -13,6 +13,7 @@ final class SupportedForms
     public const WOOCOMMERCE_LOGIN = 'woocommerce_login';
     public const WOOCOMMERCE_REGISTRATION = 'woocommerce_registration';
     public const WOOCOMMERCE_LOST_PASSWORD = 'woocommerce_lost_password';
+    public const WOOCOMMERCE_PRODUCT_REVIEWS = 'woocommerce_product_reviews';
 
     /** @return array<string, string> */
     public function labels(): array
@@ -25,6 +26,7 @@ final class SupportedForms
             self::WOOCOMMERCE_LOGIN => __('WooCommerce login', 'wp-captcha-shield'),
             self::WOOCOMMERCE_REGISTRATION => __('WooCommerce registration', 'wp-captcha-shield'),
             self::WOOCOMMERCE_LOST_PASSWORD => __('WooCommerce lost password', 'wp-captcha-shield'),
+            self::WOOCOMMERCE_PRODUCT_REVIEWS => __('WooCommerce product reviews', 'wp-captcha-shield'),
         ];
     }
 }
