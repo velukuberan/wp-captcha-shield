@@ -42,6 +42,8 @@ use WpCaptchaShield\WordPress\Http\WordPressHttpClient;
 use WpCaptchaShield\WordPress\Settings\WordPressSettingsRepository;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
@@ -146,9 +148,21 @@ $wooCommerceRegistrationFormRegistrar = new WooCommerceRegistrationFormRegistrar
     $wooCommerceRegistrationFormIntegration,
 );
 
+$wooCommerceLostPasswordFormIntegration = new WooCommerceLostPasswordFormIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+$wooCommerceLostPasswordFormRegistrar = new WooCommerceLostPasswordFormRegistrar(
+    $wooCommerceLostPasswordFormIntegration,
+);
+
 $wooCommerceBootstrap = new WooCommerceBootstrap(
     new WooCommerceAvailability(),
     $wooCommerceLoginFormRegistrar,
     $wooCommerceRegistrationFormRegistrar,
+    $wooCommerceLostPasswordFormRegistrar,
 );
 $wooCommerceBootstrap->registerHooks();

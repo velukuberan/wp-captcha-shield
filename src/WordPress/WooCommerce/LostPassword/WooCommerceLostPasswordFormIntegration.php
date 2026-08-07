@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\WordPress\Forms\LostPassword;
+namespace WpCaptchaShield\WordPress\WooCommerce\LostPassword;
 
 use WP_Error;
 use WP_User;
@@ -19,10 +19,14 @@ use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
-final class LostPasswordFormIntegration
+final class WooCommerceLostPasswordFormIntegration
 {
-    private const CAPTCHA_ACTION = 'wordpress_lost_password';
-    private const FORM_ID = 'lostpasswordform';
+    private const CAPTCHA_ACTION = 'woocommerce_lost_password';
+
+    private const FORM_ID = 'woocommerce-lost-password-form';
+
+    private const REQUEST_MARKER = 'wc_reset_password';
+
     private ?PluginSettings $settings = null;
 
     public function __construct(
@@ -34,32 +38,22 @@ final class LostPasswordFormIntegration
     ) {
     }
 
-    public function enqueue(): void
+    public function render(): void
     {
-        if (!$this->isLostPasswordScreen()) {
-            return;
-        }
         $effectiveProvider = $this->effectiveProvider();
+
         if ($effectiveProvider->isDisabled()) {
             return;
         }
-        wp_enqueue_style(
-            'wp-captcha-shield-login',
-            WP_CAPTCHA_SHIELD_URL . 'assets/css/login.css',
-            [],
-            WP_CAPTCHA_SHIELD_VERSION,
-        );
+
         $this->widgetRenderer->enqueue(
             $effectiveProvider,
             $this->widgetContext(),
             $this->settings(),
         );
-    }
 
-    public function render(): void
-    {
         $this->widgetRenderer->render(
-            $this->effectiveProvider(),
+            $effectiveProvider,
             $this->widgetContext(),
             $this->settings(),
         );
@@ -68,15 +62,21 @@ final class LostPasswordFormIntegration
     public function validate(WP_Error $errors, WP_User|false $userData): void
     {
         unset($userData);
-        if ($this->isWooCommerceLostPasswordRequest() || $errors->has_errors()) {
+
+        if (!$this->isWooCommerceLostPasswordRequest() || $errors->has_errors()) {
             return;
         }
+
         $effectiveProvider = $this->effectiveProvider();
+
         if ($effectiveProvider->isDisabled()) {
             return;
         }
+
         $result = $this->serviceFactory
-            ->create($this->configurationFactory->create($this->settings()))
+            ->create(
+                $this->configurationFactory->create($this->settings()),
+            )
             ->verify(
                 $effectiveProvider,
                 new CaptchaVerificationRequest(
@@ -86,9 +86,11 @@ final class LostPasswordFormIntegration
                     self::CAPTCHA_ACTION,
                 ),
             );
+
         if ($result->isSuccessful()) {
             return;
         }
+
         $errors->add(
             'wp_captcha_shield_verification_failed',
             $this->visitorMessage($result),
@@ -97,7 +99,10 @@ final class LostPasswordFormIntegration
 
     private function widgetContext(): CaptchaWidgetContext
     {
-        return new CaptchaWidgetContext(self::CAPTCHA_ACTION, self::FORM_ID);
+        return new CaptchaWidgetContext(
+            self::CAPTCHA_ACTION,
+            self::FORM_ID,
+        );
     }
 
     private function settings(): PluginSettings
@@ -108,8 +113,10 @@ final class LostPasswordFormIntegration
     private function effectiveProvider(): EffectiveCaptchaProvider
     {
         $settings = $this->settings();
-        $formSetting = $settings->formSettings()[SupportedForms::WORDPRESS_LOST_PASSWORD]
-            ?? FormCaptchaSetting::useDefault();
+        $formSetting = $settings->formSettings()[
+            SupportedForms::WOOCOMMERCE_LOST_PASSWORD
+        ] ?? FormCaptchaSetting::useDefault();
+
         return $this->providerResolver->resolve(
             $settings->globalSetting(),
             $formSetting,
@@ -117,26 +124,37 @@ final class LostPasswordFormIntegration
     }
 
     /**
-     * WordPress core does not include a nonce in the lost-password form.
-     * The token is read only during the native lost-password request.
+     * WooCommerce validates its lost-password nonce before WordPress invokes
+     * the native lostpassword_post action used by this integration.
      */
     // phpcs:disable WordPress.Security.NonceVerification.Missing
-    private function submittedToken(EffectiveCaptchaProvider $effectiveProvider): string
-    {
+
+    private function submittedToken(
+        EffectiveCaptchaProvider $effectiveProvider,
+    ): string {
         $field = $this->widgetRenderer->tokenFieldName(
             $effectiveProvider,
             $this->settings(),
         );
-        if ($field === '' || !isset($_POST[$field]) || !is_string($_POST[$field])) {
+
+        if (
+            $field === ''
+            || !isset($_POST[$field])
+            || !is_string($_POST[$field])
+        ) {
             return '';
         }
-        return sanitize_text_field(wp_unslash($_POST[$field]));
+
+        return sanitize_text_field(
+            wp_unslash($_POST[$field]),
+        );
     }
 
     private function isWooCommerceLostPasswordRequest(): bool
     {
-        return isset($_POST['wc_reset_password']);
+        return isset($_POST[self::REQUEST_MARKER]);
     }
+
     // phpcs:enable WordPress.Security.NonceVerification.Missing
 
     private function serverValue(string $key): ?string
@@ -144,29 +162,29 @@ final class LostPasswordFormIntegration
         if (!isset($_SERVER[$key]) || !is_string($_SERVER[$key])) {
             return null;
         }
-        return sanitize_text_field(wp_unslash($_SERVER[$key]));
-    }
 
-    private function isLostPasswordScreen(): bool
-    {
-        return in_array(
-            $GLOBALS['action'] ?? '',
-            ['lostpassword', 'retrievepassword'],
-            true,
-        );
+        return sanitize_text_field(wp_unslash($_SERVER[$key]));
     }
 
     private function visitorMessage(VerificationResult $result): string
     {
         if ($result->isUnavailable()) {
-            return __('CAPTCHA verification is temporarily unavailable. Please try again.', 'wp-captcha-shield');
+            return __(
+                'CAPTCHA verification is temporarily unavailable. Please try again.',
+                'wp-captcha-shield',
+            );
         }
+
         if ($result->isMisconfigured()) {
             return __(
                 'CAPTCHA verification could not be completed. Please contact the site administrator.',
-                'wp-captcha-shield'
+                'wp-captcha-shield',
             );
         }
-        return __('CAPTCHA verification failed. Please try again.', 'wp-captcha-shield');
+
+        return __(
+            'CAPTCHA verification failed. Please try again.',
+            'wp-captcha-shield',
+        );
     }
 }
