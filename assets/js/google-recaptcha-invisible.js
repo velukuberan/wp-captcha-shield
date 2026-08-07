@@ -2,6 +2,7 @@
   "use strict";
 
   var WIDGET_SELECTOR = ".wp-captcha-shield-google-invisible-widget";
+  var REQUEST_TOKEN_EVENT = "wp-captcha-shield:request-token";
 
   function initialize(container) {
     if (container.dataset.initialized === "true") {
@@ -13,12 +14,15 @@
     var siteKey = container.dataset.siteKey;
     var action = container.dataset.action;
     var form = findForm(container, formId);
+    var blockRoot = container.closest("[data-wp-captcha-shield-block-checkout]");
     var tokenField = findTokenField(container, tokenId);
     var widgetId = null;
     var requestingToken = false;
     var submitter = null;
+    var checkoutCompletion = null;
+    var checkoutFailure = null;
 
-    if (!form || !tokenField || !siteKey || !action) {
+    if ((!form && !blockRoot) || !tokenField || !siteKey || !action) {
       return;
     }
 
@@ -30,15 +34,29 @@
         callback: function (token) {
           tokenField.value = token;
           requestingToken = false;
-          resumeSubmission(form, submitter);
+
+          if (checkoutCompletion) {
+            var completion = checkoutCompletion;
+
+            checkoutCompletion = null;
+            checkoutFailure = null;
+            completion(token);
+            return;
+          }
+
+          if (form) {
+            resumeSubmission(form, submitter);
+          }
         },
         "expired-callback": function () {
           tokenField.value = "";
           requestingToken = false;
+          failCheckoutRequest();
         },
         "error-callback": function () {
           tokenField.value = "";
           requestingToken = false;
+          failCheckoutRequest();
         },
       });
 
@@ -48,27 +66,65 @@
       return;
     }
 
-    form.addEventListener("submit", function (event) {
-      if (tokenField.value !== "") {
+    function failCheckoutRequest() {
+      if (!checkoutFailure) {
         return;
       }
 
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      var failure = checkoutFailure;
 
+      checkoutCompletion = null;
+      checkoutFailure = null;
+      failure();
+    }
+
+    function execute() {
       if (requestingToken || widgetId === null) {
-        return;
+        return false;
       }
 
       requestingToken = true;
-      submitter = event.submitter || null;
 
       grecaptcha.enterprise.execute(widgetId).catch(function () {
         requestingToken = false;
         tokenField.value = "";
         grecaptcha.enterprise.reset(widgetId);
+        failCheckoutRequest();
       });
-    }, true);
+
+      return true;
+    }
+
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        if (tokenField.value !== "") {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        submitter = event.submitter || null;
+        execute();
+      }, true);
+    }
+
+    document.addEventListener(REQUEST_TOKEN_EVENT, function (event) {
+      var detail = event.detail;
+
+      if (!detail || !detail.root || !detail.root.contains(container)) {
+        return;
+      }
+
+      detail.handled = true;
+      tokenField.value = "";
+      checkoutCompletion = detail.complete;
+      checkoutFailure = detail.fail;
+
+      if (!execute()) {
+        failCheckoutRequest();
+      }
+    });
   }
 
   function findForm(element, formId) {

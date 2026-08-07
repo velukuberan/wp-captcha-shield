@@ -18,6 +18,8 @@ use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurati
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceBlockCheckoutIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceBlockCheckoutRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
@@ -144,6 +146,20 @@ final class WooCommerceBootstrapTest extends TestCase
                 10,
                 2,
             );
+        Functions\expect('add_filter')
+            ->once()
+            ->with(
+                'render_block_woocommerce/checkout-actions-block',
+                Mockery::type('array'),
+            );
+        Functions\expect('add_filter')
+            ->once()
+            ->with(
+                'rest_pre_dispatch',
+                Mockery::type('array'),
+                10,
+                3,
+            );
 
         $this->bootstrap()->initialize();
 
@@ -196,6 +212,13 @@ final class WooCommerceBootstrapTest extends TestCase
             $serviceFactory,
             $widgetRenderer,
         );
+        $blockCheckoutIntegration = new WooCommerceBlockCheckoutIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
+        );
 
         return new WooCommerceBootstrap(
             new WooCommerceAvailability(),
@@ -211,6 +234,9 @@ final class WooCommerceBootstrapTest extends TestCase
             ),
             new WooCommerceClassicCheckoutRegistrar(
                 $classicCheckoutIntegration,
+            ),
+            new WooCommerceBlockCheckoutRegistrar(
+                $blockCheckoutIntegration,
             ),
         );
     }
