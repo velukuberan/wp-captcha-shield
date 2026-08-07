@@ -1,0 +1,100 @@
+name: Package plugin
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version label for the zip (e.g. 0.1.0-beta1)"
+        required: true
+
+jobs:
+  build:
+    name: Build release zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to attach the zip to a GitHub Release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer:v2
+          coverage: none
+
+      - name: Install production dependencies
+        run: |
+          composer install \
+            --no-dev \
+            --optimize-autoloader \
+            --classmap-authoritative \
+            --no-interaction \
+            --no-progress
+
+      - name: Determine version label
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "label=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            # strip the leading "v" from the tag
+            echo "label=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify header version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          HEADER_VERSION=$(grep -E "^\s*\*\s*Version:" wp-captcha-shield.php \
+            | head -n1 | sed -E 's/.*Version:\s*//' | tr -d '[:space:]')
+          TAG_VERSION="${{ steps.version.outputs.label }}"
+          if [ "$HEADER_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Plugin header version ($HEADER_VERSION) does not match tag ($TAG_VERSION)."
+            exit 1
+          fi
+
+      - name: Stage plugin files
+        run: |
+          SLUG=wp-captcha-shield
+          mkdir -p "build/${SLUG}"
+          rsync -av \
+            --exclude-from=.distignore \
+            --exclude='.git' \
+            --exclude='build' \
+            ./ "build/${SLUG}/"
+
+      - name: Create zip
+        id: zip
+        run: |
+          SLUG=wp-captcha-shield
+          LABEL="${{ steps.version.outputs.label }}"
+          ZIP_NAME="${SLUG}-${LABEL}.zip"
+          cd build
+          zip -r "../${ZIP_NAME}" "${SLUG}" -x "*.DS_Store"
+          cd ..
+          echo "path=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+          echo ""
+          echo "Zip contents summary:"
+          unzip -l "${ZIP_NAME}" | tail -n 20
+
+      - name: Upload zip as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: ${{ steps.zip.outputs.path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach zip to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.zip.outputs.path }}
+          draft: true
+          prerelease: true
+          generate_release_notes: true
