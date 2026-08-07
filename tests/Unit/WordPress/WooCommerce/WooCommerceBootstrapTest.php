@@ -22,6 +22,8 @@ use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
@@ -109,6 +111,23 @@ final class WooCommerceBootstrapTest extends TestCase
                 30,
                 2,
             );
+        Functions\expect('add_action')
+            ->once()
+            ->with('wp_enqueue_scripts', Mockery::type('array'));
+        Functions\expect('add_filter')
+            ->once()
+            ->with(
+                'comment_form_submit_field',
+                Mockery::type('array'),
+            );
+        Functions\expect('add_action')
+            ->once()
+            ->with(
+                'pre_comment_on_post',
+                Mockery::type('array'),
+                30,
+                1,
+            );
 
         $this->bootstrap()->initialize();
 
@@ -147,6 +166,13 @@ final class WooCommerceBootstrapTest extends TestCase
             $serviceFactory,
             $widgetRenderer,
         );
+        $productReviewIntegration = new WooCommerceProductReviewFormIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
+        );
 
         return new WooCommerceBootstrap(
             new WooCommerceAvailability(),
@@ -156,6 +182,9 @@ final class WooCommerceBootstrapTest extends TestCase
             ),
             new WooCommerceLostPasswordFormRegistrar(
                 $lostPasswordIntegration,
+            ),
+            new WooCommerceProductReviewFormRegistrar(
+                $productReviewIntegration,
             ),
         );
     }

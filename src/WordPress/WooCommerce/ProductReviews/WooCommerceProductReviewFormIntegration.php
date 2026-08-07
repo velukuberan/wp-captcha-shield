@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\WordPress\Forms\Comments;
+namespace WpCaptchaShield\WordPress\WooCommerce\ProductReviews;
 
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProvider;
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProviderResolver;
@@ -17,30 +17,28 @@ use WpCaptchaShield\WordPress\Forms\SupportedForms;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
-final class CommentFormIntegration
+final class WooCommerceProductReviewFormIntegration
 {
-    private const CAPTCHA_ACTION = 'wordpress_comment';
+    private const CAPTCHA_ACTION = 'woocommerce_product_review';
 
     private const FORM_ID = 'commentform';
 
+    private const PRODUCT_POST_TYPE = 'product';
+
     private ?PluginSettings $settings = null;
 
-    /**
-     * @param list<string> $excludedPostTypes
-     */
     public function __construct(
         private readonly SettingsRepository $repository,
         private readonly EffectiveCaptchaProviderResolver $providerResolver,
         private readonly CaptchaProviderConfigurationFactory $configurationFactory,
         private readonly CaptchaServiceFactory $serviceFactory,
         private readonly CaptchaWidgetRenderer $widgetRenderer,
-        private readonly array $excludedPostTypes = [],
     ) {
     }
 
     public function enqueue(): void
     {
-        if (!$this->isCommentFormPage()) {
+        if (!$this->isProductReviewPage()) {
             return;
         }
 
@@ -59,7 +57,7 @@ final class CommentFormIntegration
 
     public function addWidgetToSubmitField(string $submitField): string
     {
-        if ($this->isExcludedPostType()) {
+        if (!$this->isProductReviewPage()) {
             return $submitField;
         }
 
@@ -84,7 +82,7 @@ final class CommentFormIntegration
 
     public function validate(int $commentPostId): void
     {
-        if ($this->isExcludedPostType($commentPostId)) {
+        if (!$this->isProductPost($commentPostId)) {
             return;
         }
 
@@ -115,7 +113,7 @@ final class CommentFormIntegration
         wp_die(
             esc_html($this->visitorMessage($result)),
             esc_html__(
-                'Comment submission blocked',
+                'Review submission blocked',
                 'wp-captcha-shield',
             ),
             [
@@ -141,7 +139,7 @@ final class CommentFormIntegration
     private function effectiveProvider(): EffectiveCaptchaProvider
     {
         $settings = $this->settings();
-        $formSetting = $settings->formSettings()[SupportedForms::WORDPRESS_COMMENTS]
+        $formSetting = $settings->formSettings()[SupportedForms::WOOCOMMERCE_PRODUCT_REVIEWS]
             ?? FormCaptchaSetting::useDefault();
 
         return $this->providerResolver->resolve(
@@ -151,8 +149,9 @@ final class CommentFormIntegration
     }
 
     /**
-     * WordPress core does not include a nonce in the native comment form.
-     * The provider token is read only during native comment submission.
+     * WooCommerce product reviews use the native WordPress comment form and
+     * do not add a separate review nonce. The provider token is therefore read
+     * during the normal comment submission request.
      */
     // phpcs:disable WordPress.Security.NonceVerification.Missing
 
@@ -188,25 +187,15 @@ final class CommentFormIntegration
         return sanitize_text_field(wp_unslash($_SERVER[$key]));
     }
 
-    private function isCommentFormPage(): bool
+    private function isProductReviewPage(): bool
     {
-        if (!is_singular() || !comments_open()) {
-            return false;
-        }
-
-        $postType = get_post_type();
-
-        return is_string($postType)
-            && !in_array($postType, $this->excludedPostTypes, true)
-            && post_type_supports($postType, 'comments');
+        return is_singular(self::PRODUCT_POST_TYPE)
+            && comments_open();
     }
 
-    private function isExcludedPostType(?int $postId = null): bool
+    private function isProductPost(int $postId): bool
     {
-        $postType = get_post_type($postId);
-
-        return is_string($postType)
-            && in_array($postType, $this->excludedPostTypes, true);
+        return get_post_type($postId) === self::PRODUCT_POST_TYPE;
     }
 
     private function visitorMessage(VerificationResult $result): string

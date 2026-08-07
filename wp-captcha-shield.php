@@ -44,6 +44,8 @@ use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormRegistrar;
+use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\ProductReviews\WooCommerceProductReviewFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Registration\WooCommerceRegistrationFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\WooCommerceAvailability;
@@ -122,6 +124,7 @@ $commentFormIntegration = new CommentFormIntegration(
     $configurationFactory,
     $serviceFactory,
     $widgetRenderer,
+    ['product'],
 );
 $commentFormRegistrar = new CommentFormRegistrar($commentFormIntegration);
 $commentFormRegistrar->registerHooks();
@@ -159,10 +162,22 @@ $wooCommerceLostPasswordFormRegistrar = new WooCommerceLostPasswordFormRegistrar
     $wooCommerceLostPasswordFormIntegration,
 );
 
+$wooCommerceProductReviewFormIntegration = new WooCommerceProductReviewFormIntegration(
+    $settingsRepository,
+    $providerResolver,
+    $configurationFactory,
+    $serviceFactory,
+    $widgetRenderer,
+);
+$wooCommerceProductReviewFormRegistrar = new WooCommerceProductReviewFormRegistrar(
+    $wooCommerceProductReviewFormIntegration,
+);
+
 $wooCommerceBootstrap = new WooCommerceBootstrap(
     new WooCommerceAvailability(),
     $wooCommerceLoginFormRegistrar,
     $wooCommerceRegistrationFormRegistrar,
     $wooCommerceLostPasswordFormRegistrar,
+    $wooCommerceProductReviewFormRegistrar,
 );
 $wooCommerceBootstrap->registerHooks();
