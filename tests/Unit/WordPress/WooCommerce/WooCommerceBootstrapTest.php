@@ -18,6 +18,8 @@ use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurati
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutIntegration;
+use WpCaptchaShield\WordPress\WooCommerce\Checkout\WooCommerceClassicCheckoutRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormIntegration;
 use WpCaptchaShield\WordPress\WooCommerce\Login\WooCommerceLoginFormRegistrar;
 use WpCaptchaShield\WordPress\WooCommerce\LostPassword\WooCommerceLostPasswordFormIntegration;
@@ -128,6 +130,20 @@ final class WooCommerceBootstrapTest extends TestCase
                 30,
                 1,
             );
+        Functions\expect('add_action')
+            ->once()
+            ->with(
+                'woocommerce_checkout_before_order_review',
+                Mockery::type('array'),
+            );
+        Functions\expect('add_action')
+            ->once()
+            ->with(
+                'woocommerce_after_checkout_validation',
+                Mockery::type('array'),
+                10,
+                2,
+            );
 
         $this->bootstrap()->initialize();
 
@@ -173,6 +189,13 @@ final class WooCommerceBootstrapTest extends TestCase
             $serviceFactory,
             $widgetRenderer,
         );
+        $classicCheckoutIntegration = new WooCommerceClassicCheckoutIntegration(
+            $repository,
+            $providerResolver,
+            $configurationFactory,
+            $serviceFactory,
+            $widgetRenderer,
+        );
 
         return new WooCommerceBootstrap(
             new WooCommerceAvailability(),
@@ -185,6 +208,9 @@ final class WooCommerceBootstrapTest extends TestCase
             ),
             new WooCommerceProductReviewFormRegistrar(
                 $productReviewIntegration,
+            ),
+            new WooCommerceClassicCheckoutRegistrar(
+                $classicCheckoutIntegration,
             ),
         );
     }

@@ -39,6 +39,7 @@
       }
 
       event.preventDefault();
+      event.stopImmediatePropagation();
 
       if (requestingToken || widgetId === null) {
         return;
@@ -52,7 +53,7 @@
       } catch (error) {
         requestingToken = false;
       }
-    });
+    }, true);
   }
 
   function findForm(element, formId) {

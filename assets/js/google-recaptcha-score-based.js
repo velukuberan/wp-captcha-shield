@@ -22,6 +22,7 @@
             }
 
             event.preventDefault();
+            event.stopImmediatePropagation();
 
             if (requestingToken || !googleIsAvailable()) {
                 return;
@@ -41,7 +42,7 @@
                     tokenField.value = '';
                 });
             });
-        });
+        }, true);
     }
 
     function findForm(element, formId) {

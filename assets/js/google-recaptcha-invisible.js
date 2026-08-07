@@ -54,6 +54,7 @@
       }
 
       event.preventDefault();
+      event.stopImmediatePropagation();
 
       if (requestingToken || widgetId === null) {
         return;
@@ -67,7 +68,7 @@
         tokenField.value = "";
         grecaptcha.enterprise.reset(widgetId);
       });
-    });
+    }, true);
   }
 
   function findForm(element, formId) {
