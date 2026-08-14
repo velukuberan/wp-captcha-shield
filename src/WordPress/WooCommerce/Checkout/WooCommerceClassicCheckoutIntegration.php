@@ -49,6 +49,14 @@ final class WooCommerceClassicCheckoutIntegration
             $this->settings(),
         );
 
+        wp_enqueue_script(
+            'wp-captcha-shield-classic-checkout-rehydrate',
+            WP_CAPTCHA_SHIELD_URL . 'assets/js/classic-checkout-rehydrate.js',
+            ['jquery'],
+            WP_CAPTCHA_SHIELD_VERSION,
+            true
+        );
+
         $this->widgetRenderer->render(
             $effectiveProvider,
             $this->widgetContext(),

@@ -14,7 +14,7 @@ final class WooCommerceClassicCheckoutRegistrar
     public function registerHooks(): void
     {
         add_action(
-            'woocommerce_checkout_before_order_review',
+            'woocommerce_review_order_before_submit',
             [$this->integration, 'render'],
         );
         add_action(
