@@ -57,6 +57,9 @@ final class WooCommerceClassicCheckoutIntegrationTest extends TestCase
 
     public function testItEnqueuesAndRendersThroughTheSharedWidgetRenderer(): void
     {
+        Functions\expect('wp_enqueue_script')
+            ->once();
+
         $widget = $this->recordingWidget();
         $settings = $this->enabledSettings();
 
@@ -230,6 +233,9 @@ final class WooCommerceClassicCheckoutIntegrationTest extends TestCase
 
     public function testItLoadsSettingsOnlyOncePerIntegrationInstance(): void
     {
+        Functions\expect('wp_enqueue_script')
+        ->twice();
+
         $settings = $this->enabledSettings();
         $repository = Mockery::mock(SettingsRepository::class);
         $repository->shouldReceive('load')->once()->andReturn($settings);

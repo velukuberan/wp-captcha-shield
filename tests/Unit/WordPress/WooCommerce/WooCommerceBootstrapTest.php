@@ -135,7 +135,7 @@ final class WooCommerceBootstrapTest extends TestCase
         Functions\expect('add_action')
             ->once()
             ->with(
-                'woocommerce_checkout_before_order_review',
+                'woocommerce_review_order_before_submit',
                 Mockery::type('array'),
             );
         Functions\expect('add_action')
