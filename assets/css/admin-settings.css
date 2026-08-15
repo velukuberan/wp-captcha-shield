@@ -1,0 +1,106 @@
+.wp-captcha-shield-tabs {
+  margin-bottom: 20px;
+}
+
+.wp-captcha-shield-tabs .nav-tab {
+  cursor: pointer;
+}
+
+.wp-captcha-shield-settings.wpcs-tabs-ready .wp-captcha-shield-tab-panel {
+  display: none;
+}
+
+.wp-captcha-shield-settings.wpcs-tabs-ready
+  .wp-captcha-shield-tab-panel.is-active {
+  display: block;
+}
+
+.wp-captcha-shield-help {
+  position: relative;
+  display: inline-flex;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.wp-captcha-shield-help-button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #646970;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  cursor: help;
+}
+
+.wp-captcha-shield-help-button:focus {
+  outline: 2px solid #2271b1;
+  outline-offset: 2px;
+}
+
+.wp-captcha-shield-tooltip {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: 260px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: #1d2327;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  transform: translateX(-50%);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wp-captcha-shield-help:hover .wp-captcha-shield-tooltip,
+.wp-captcha-shield-help:focus-within .wp-captcha-shield-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.wp-captcha-shield-status-table {
+  max-width: 640px;
+  margin-top: 16px;
+}
+
+.wp-captcha-shield-status-table th,
+.wp-captcha-shield-status-table td {
+  vertical-align: middle;
+}
+
+.wp-captcha-shield-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.wp-captcha-shield-status.is-compatible {
+  background: #edfaef;
+  color: #116329;
+}
+
+.wp-captcha-shield-status.is-unsupported {
+  background: #fcf0f1;
+  color: #8a2424;
+}
+
+.wp-captcha-shield-status.is-optional {
+  background: #f0f6fc;
+  color: #1d4f91;
+}
+
+.wp-captcha-shield-tab-panel .description {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}

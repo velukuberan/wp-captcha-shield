@@ -22,5 +22,10 @@ final class SettingsPageRegistrar
             'admin_post_' . SettingsPage::SAVE_ACTION,
             [$this->settingsPage, 'save'],
         );
+
+        add_action(
+            'admin_enqueue_scripts',
+            [$this->settingsPage, 'enqueueAssets'],
+        );
     }
 }
