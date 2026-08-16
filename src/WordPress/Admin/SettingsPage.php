@@ -624,13 +624,21 @@ final class SettingsPage
                     __('PHP', 'wp-captcha-shield'),
                     '8.1.0',
                     PHP_VERSION,
-                    version_compare(PHP_VERSION, '8.1.0', '>='),
+                    version_compare(
+                        $this->normalizeVersion(PHP_VERSION),
+                        '8.1.0',
+                        '>=',
+                    ),
                 );
                 $this->renderStatusRow(
                     __('WordPress', 'wp-captcha-shield'),
                     '6.7.0',
                     $wordpressVersion,
-                    version_compare($wordpressVersion, '6.7.0', '>='),
+                    version_compare(
+                        $this->normalizeVersion($wordpressVersion),
+                        '6.7.0',
+                        '>=',
+                    ),
                 );
 
                 if ($wooCommerceVersion === null) {
@@ -645,7 +653,11 @@ final class SettingsPage
                         __('WooCommerce', 'wp-captcha-shield'),
                         '10.1.0',
                         $wooCommerceVersion,
-                        version_compare($wooCommerceVersion, '10.1.0', '>='),
+                        version_compare(
+                            $this->normalizeVersion($wooCommerceVersion),
+                            '10.1.0',
+                            '>=',
+                        ),
                     );
                 }
                 ?>
@@ -665,6 +677,23 @@ final class SettingsPage
             ); ?>
         </p>
         <?php
+    }
+
+    /**
+     * WordPress (and occasionally WooCommerce) reports "round" releases
+     * without a trailing patch component — e.g. "6.7" instead of
+     * "6.7.0" for the initial 6.7 release. PHP's version_compare()
+     * treats a short version string as *older* than the same version
+     * written with an explicit ".0" (version_compare('6.7', '6.7.0')
+     * returns -1), which would otherwise flag a fully up-to-date site
+     * as unsupported. Padding to three numeric components before
+     * comparing avoids that false negative.
+     */
+    private function normalizeVersion(string $version): string
+    {
+        $parts = explode('.', $version, 3);
+
+        return implode('.', array_pad($parts, 3, '0'));
     }
 
     private function renderStatusRow(
