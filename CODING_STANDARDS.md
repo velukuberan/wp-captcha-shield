@@ -8,30 +8,53 @@
 - Preserve the `Domain/`, `Providers/`, and `WordPress/` boundaries.
 - Prefer explicit dependencies over globals, service locators, and hidden state.
 - Do not mix unrelated refactoring with feature work.
+- Keep production design independent of testing-library limitations.
 
 ## 2. PHP and project structure
 
 - PHP 8.1 or newer is required.
 - Use namespaces and PSR-4 autoloading.
 - Composer is the project autoloader.
-- Keep the main plugin file as a thin bootstrap.
+- Keep `wp-captcha-shield.php` as a thin WordPress bootstrap.
+- Application dependency construction belongs in `src/WordPress/Bootstrap/Plugin.php`.
 - Use strict types where practical.
 - Prefer typed properties, parameters, and return types.
 - Keep public APIs small and intentional.
 - Do not suppress type problems merely to satisfy tools.
 
-## 3. WordPress boundaries
+## 3. Architecture boundaries
 
 - Domain code must never call WordPress or WooCommerce functions.
 - Domain code must never register or invoke hooks.
 - Hooks belong inside `WordPress/`.
-- WordPress option access belongs behind the repository.
+- WordPress option access belongs behind the settings repository.
 - WordPress HTTP access belongs behind the HTTP client abstraction.
+- Providers must not know forms.
+- Forms must not contain provider-specific branches.
+- WordPress and WooCommerce bootstrap responsibilities must remain separate.
+- Classic Checkout and Checkout Block must remain separate integration adapters around shared checkout configuration.
+
+## 4. WordPress boundaries
+
 - Hook callbacks must stay thin.
 - Normalize request data before passing it inward.
 - Sanitize input and escape output at the correct boundary.
+- Do not perform provider HTTP requests directly from hook callbacks.
+- Do not persist settings directly from rendering classes.
+- Load admin assets only on the WP Captcha Shield settings page.
+- WooCommerce-specific initialization must remain inactive when WooCommerce is unavailable.
 
-## 4. Naming and organization
+## 5. Admin UI organization
+
+- `SettingsPage` coordinates WordPress page behaviour and should remain small.
+- Page layout belongs in `SettingsPageView`.
+- Shared field output belongs in `SettingsFieldRenderer`.
+- Individual settings tabs implement `SettingsTabSection`.
+- Provider tabs belong in focused section classes.
+- Environment compatibility rules belong in Domain code rather than UI rendering code.
+- Do not move unrelated business rules into admin view classes for convenience.
+
+## 6. Naming and organization
 
 - Classes: `PascalCase`
 - Methods and variables: `camelCase`
@@ -39,26 +62,40 @@
 - Avoid vague names such as `Helper`, `Manager`, `Common`, `Utility`, or `Misc`.
 - One class should have one clear responsibility.
 - Files should contain one primary class, interface, enum, or trait.
-- Providers must not know forms.
-- Forms must not contain provider-specific branches.
+- Names should express architectural responsibility rather than implementation convenience.
 
-## 5. Internationalization and output safety
+## 7. Internationalization and output safety
 
-- Always pass the plugin text domain explicitly.
+- Always pass the `wp-captcha-shield` text domain explicitly.
 - Use the translation function appropriate to the context.
 - Translation does not replace escaping.
 - Escape HTML, attributes, URLs, and JavaScript values for their final context.
 - Never expose raw provider errors to visitors.
+- Add translator comments immediately before translatable strings when placeholders or ambiguous context require explanation.
+- Keep `languages/wp-captcha-shield.pot` generated from production source strings rather than editing extracted entries manually.
+- Exclude generated and development-only directories such as `build`, `vendor`, `tests`, and `coverage` from POT scanning.
 
-## 6. Error handling
+## 8. Error handling
 
 - Map provider failures into the common verification result.
 - Do not leak stack traces, exceptions, payloads, tokens, or credentials.
 - Do not catch exceptions without handling, mapping, or deliberately rethrowing them.
 - Use explicit results for expected verification outcomes.
 - Reserve exceptions for unexpected technical failures.
+- Protected actions must fail closed when required verification cannot be completed.
 
-## 7. Test-first workflow
+## 9. Frontend JavaScript
+
+- Keep form-integration JavaScript narrowly scoped to the platform lifecycle it supports.
+- Do not duplicate provider-independent PHP decisions in JavaScript.
+- Provider-specific API calls may exist in rendering/rehydration scripts, but form integrations must remain provider-neutral.
+- Guard against duplicate initialization when provider APIs or WooCommerce lifecycle events can fire repeatedly.
+- Executable CAPTCHA modes must prevent submission races while a token is being obtained.
+- Classic Checkout widgets must tolerate WooCommerce AJAX re-rendering.
+- Checkout Block token transfer must use WooCommerce extension data rather than bypassing the Store API contract.
+- Production frontend assets must be minified for release builds.
+
+## 10. Test-first workflow
 
 For new behavior:
 
@@ -70,7 +107,7 @@ For new behavior:
 
 A test-first mindset is required; ceremony is not.
 
-## 8. PHPUnit
+## 11. PHPUnit
 
 - PHPUnit is the primary PHP test runner.
 - Tests must be deterministic and independent.
@@ -81,37 +118,39 @@ A test-first mindset is required; ceremony is not.
 - Cover success, failure, edge cases, and regressions where relevant.
 - Domain tests must run without WordPress.
 - Provider tests must not call live services.
+- Classic and Block checkout tests must cover their distinct platform boundaries.
 
-## 9. Mockery
+## 12. Mockery
 
-- Use Mockery for collaborators and external boundaries.
+- Use Mockery only for genuine architectural interfaces, external systems, or infrastructure boundaries.
 - Keep production design independent of testing-library limitations.
 - Do not introduce interfaces, remove `final`, alter visibility, or change production architecture solely to make tests or mocking tools easier.
-- In tests, use real final collaborators and mock only genuine architectural interfaces, external systems, or infrastructure boundaries.
-- Mock genuine interfaces and external boundaries; do not introduce an interface solely to enable mocking.
+- In tests, use real final collaborators where they are normal production collaborators.
+- Do not introduce an interface solely to enable mocking.
 - Prefer simple fakes when clearer.
 - Never mock the class under test.
 - Avoid over-specifying internal calls.
 - Mock only contract-relevant interactions.
 - Close Mockery through its PHPUnit integration.
 
-## 10. Brain Monkey
+## 13. Brain Monkey
 
 - Use Brain Monkey for isolated WordPress function, action, and filter tests.
-- Do not use Brain Monkey in domain tests.
+- Do not use Brain Monkey in Domain tests.
 - Brain Monkey does not replace real WordPress integration tests.
 - Keep WordPress-specific tests in the WordPress test area.
 
-## 11. Integration and E2E testing
+## 14. Integration and E2E testing
 
 - Integration tests verify important WordPress and WooCommerce boundaries.
 - Playwright tests browser-based critical user journeys.
 - Automated E2E tests must not solve live CAPTCHAs.
 - Provider outcomes must use deterministic test seams.
 - Live Cloudflare, Google, and hCaptcha verification is tested manually.
+- hCaptcha Invisible release validation must use a real hostname.
 - E2E tests should not duplicate every unit test.
 
-## 12. Code coverage
+## 15. Code coverage
 
 Tools and reporting:
 
@@ -138,21 +177,9 @@ GitHub Actions coverage rules:
 
 - Coverage is collected in one dedicated job.
 - The coverage job runs on PHP 8.1, the minimum supported PHP version.
-- The PHP 8.1, 8.2, and 8.3 compatibility matrix runs without coverage instrumentation.
-- Coverage must not be generated independently by every PHP matrix job.
-- A failed coverage generation or Codecov upload fails the dedicated coverage job.
-- The Codecov token must be stored as the `CODECOV_TOKEN` GitHub Actions secret.
+- Compatibility matrix jobs run without duplicate coverage instrumentation.
+- Coverage generation or upload failures must not be silently ignored.
 - Tokens and credentials must never be committed to the repository.
-
-Codecov status rules:
-
-- Project coverage measures the complete measured codebase.
-- Project coverage is initially informational and does not block pull requests.
-- Patch coverage measures production lines changed by a pull request.
-- The initial patch-coverage target is 80%.
-- The initial patch-coverage threshold is 5%.
-- Coverage targets may be adjusted deliberately as the codebase and test suite mature.
-- Coverage configuration changes must not silently weaken existing expectations.
 
 Coverage interpretation:
 
@@ -164,14 +191,7 @@ Coverage interpretation:
 - Excluding production code from coverage requires a documented technical reason.
 - Coverage does not replace architecture review, PHPStan, PHPCS, integration tests, E2E tests, or manual provider verification.
 
-For new and changed behaviour:
-
-- Add tests for meaningful success, failure, and edge-case paths.
-- Review Codecov patch coverage on the pull request.
-- Investigate uncovered changed lines rather than accepting the percentage without review.
-- When a changed line is intentionally untested, document the reason in the pull request.
-
-## 13. Static analysis
+## 16. Static analysis
 
 Required:
 
@@ -187,7 +207,7 @@ Rules:
 - Fix the underlying type problem whenever practical.
 - Configure WordPress support correctly instead of weakening analysis.
 
-## 14. Coding-standard enforcement
+## 17. Coding-standard enforcement
 
 Required:
 
@@ -204,9 +224,9 @@ Rules:
 - Do not enable every rule blindly.
 - Disabling a rule requires a clear reason.
 
-## 15. Quality commands
+## 18. Quality commands
 
-Composer should expose:
+Composer exposes:
 
 ```text
 composer test
@@ -230,11 +250,33 @@ Expected responsibilities:
 - `fix`: automatically fix supported coding-standard violations
 - `check`: all required PHP quality checks
 
-The regular `check` command does not need to generate or upload coverage. Coverage runs separately because instrumentation adds execution overhead and Codecov upload belongs to CI rather than the normal local quality command.
+The regular `check` command does not generate or upload coverage.
 
-Node scripts may run Playwright and frontend checks.
+Node tooling may run Playwright, frontend checks, asset builds, and minification.
 
-## 16. Completion criteria
+## 19. Documentation synchronization
+
+Documentation must be updated when implementation changes affect:
+
+- supported forms;
+- supported provider modes;
+- minimum supported versions;
+- architecture or dependency composition;
+- settings behaviour;
+- admin UI structure;
+- build, packaging, localization, or release workflow;
+- testing requirements.
+
+Documentation priority is:
+
+1. `ARCHITECTURE.md`
+2. `TECHNICAL_REQUIREMENTS.md`
+3. `CODING_STANDARDS.md`
+4. `README.md`
+
+Do not leave lower-priority documents describing behaviour that has already been superseded by implementation and higher-priority project decisions.
+
+## 20. Completion criteria
 
 A change is complete only when:
 
@@ -244,7 +286,9 @@ A change is complete only when:
 - architecture boundaries remain intact;
 - no unrelated files were changed;
 - strings are translatable;
+- translator context is provided where placeholders require it;
 - input and output handling meet WordPress security requirements;
 - relevant changed production code has meaningful test coverage;
 - uncovered changed lines have been reviewed and justified where necessary;
-- documentation is updated when behavior, configuration, tooling, or development workflow changes.
+- production assets meet release-build requirements;
+- documentation is updated when behavior, configuration, tooling, architecture, localization, or development workflow changes.

@@ -10,9 +10,11 @@ The plugin uses a provider-neutral configuration model:
 - configure supported modes independently for each provider;
 - keep CAPTCHA providers independent from WordPress and WooCommerce form integrations.
 
-> **Project status:** Active development. The provider configuration, rendering, and server-side verification foundations are implemented for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha. WordPress login, registration, lost password, and comment forms are currently implemented. The plugin is not ready for production use while WooCommerce integrations, end-to-end coverage, packaging, and release validation are still being completed.
+> **Current version:** `0.1.0-beta1`
+>
+> **Project status:** Beta development and release hardening. The planned WordPress and WooCommerce form integrations are implemented, including Classic Checkout and Checkout Block. Provider configuration, rendering, server-side verification, admin status reporting, packaging workflow, and translation extraction are in place. Final release-hardening work still includes production asset minification and compatibility/manual-provider validation.
 
-## Implemented CAPTCHA providers
+## CAPTCHA providers
 
 ### Cloudflare Turnstile
 
@@ -45,49 +47,47 @@ Implemented display modes:
 
 Passive behaviour is controlled by the hCaptcha account and site-key configuration rather than by a plugin display-mode setting.
 
+hCaptcha Invisible should be validated on a real hostname for release testing because localhost behaviour is not considered a reliable validation environment for that mode.
+
 ## Form support
 
-### Currently implemented
+### WordPress
 
-#### WordPress
+Implemented:
 
 - Login
 - Registration
 - Lost password
 - Comments
 
-### Planned
+### WooCommerce
 
-#### WooCommerce
+Implemented:
 
 - Login
 - Registration
 - Lost password
 - Product reviews
 - Classic checkout
-- Block checkout
+- Checkout Block
 
-WooCommerce login may cover more than one presentation of the customer login form, including the My Account login form and the returning-customer login shown during checkout.
+WooCommerce is optional. WordPress form protection remains available when WooCommerce is inactive.
 
-Classic checkout and block checkout share one user-facing WooCommerce checkout configuration, but they require separate integration implementations because they use different rendering and submission mechanisms.
+WooCommerce product reviews are configured independently from WordPress comments.
 
-WooCommerce product reviews remain separate from general WordPress comments so that site administrators can configure them independently.
+Classic Checkout and Checkout Block share one user-facing WooCommerce checkout CAPTCHA setting while using separate technical integrations.
 
-## WooCommerce implementation roadmap
+### Classic Checkout
 
-The planned WooCommerce development sequence is:
+Classic Checkout integrates with WooCommerce's traditional PHP/AJAX checkout flow.
 
-- WCS-053 — Update README
-- WCS-054 — WooCommerce bootstrap and availability
-- WCS-055 — WooCommerce login
-- WCS-056 — WooCommerce registration
-- WCS-057 — WooCommerce lost password
-- WCS-058 — WooCommerce product reviews
-- WCS-059 — Classic WooCommerce checkout
-- WCS-060 — WooCommerce block checkout
-- WCS-061 — WooCommerce integration documentation
+The CAPTCHA is placed near the Place order button and is rehydrated after WooCommerce `updated_checkout` refreshes replace checkout markup.
 
-WooCommerce-specific integrations must not initialize when WooCommerce is inactive.
+### Checkout Block
+
+Checkout Block integrates with WooCommerce Blocks and the Store API.
+
+CAPTCHA token data is passed through WooCommerce checkout extension data and verified server-side before checkout completes.
 
 ## Configuration model
 
@@ -112,7 +112,23 @@ Each supported form can be configured to:
 
 `Disabled` is a configuration state, not a CAPTCHA provider.
 
-Provider selection and provider-specific mode configuration remain separate. Forms select an effective provider without knowing how that provider renders its widget or verifies its token.
+Provider selection and provider-specific mode configuration remain separate.
+
+## Admin settings
+
+WP Captcha Shield provides one settings page with tabs for:
+
+- General
+- Cloudflare Turnstile
+- Google reCAPTCHA
+- hCaptcha
+- Status
+
+The settings UI includes contextual field guidance and an environment status table.
+
+The Status tab compares the current environment with the minimum supported versions while preserving the raw version reported by WordPress, PHP, or WooCommerce.
+
+Short versions such as `6.7` are normalized for compatibility comparison with `6.7.0`.
 
 ## Architecture
 
@@ -126,12 +142,12 @@ WordPress/
 
 ### Domain
 
-Contains provider-neutral configuration rules, provider selection, verification result contracts, and interfaces required by the core rules.
+Contains provider-neutral configuration rules, provider selection, verification results, contracts, and environment compatibility logic.
 
 The Domain:
 
 - does not call WordPress or WooCommerce functions;
-- does not register or invoke hooks;
+- does not register hooks;
 - does not perform provider HTTP requests;
 - does not know form-specific implementation details.
 
@@ -143,22 +159,24 @@ Contains provider-specific verification behaviour for:
 - Google reCAPTCHA
 - hCaptcha
 
-Providers depend on common Domain contracts and do not know which WordPress or WooCommerce form invoked them.
+Providers depend on Domain contracts and do not know which WordPress or WooCommerce form invoked them.
 
 ### WordPress
 
 Contains:
 
-- plugin bootstrap;
+- the `Plugin` composition root;
 - WordPress actions and filters;
 - WordPress and WooCommerce form integrations;
+- `WordPressFormsBootstrap`;
+- `WooCommerceBootstrap`;
 - application coordination;
 - CAPTCHA widget rendering;
 - settings persistence;
-- the admin settings page;
+- the admin settings UI;
 - the WordPress HTTP client adapter.
 
-Form integrations depend on shared contracts and do not contain provider-specific implementation branches.
+`wp-captcha-shield.php` remains a thin bootstrap and delegates application startup to the `Plugin` composition root.
 
 The dependency direction is:
 
@@ -169,25 +187,21 @@ Domain -X-> WordPress
 Domain -X-> Providers
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete architectural design and dependency rules.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete architectural design and locked invariants.
 
 ## Requirements
 
 Minimum supported versions:
 
 - PHP 8.1 or newer
-- WordPress 6.9 or newer
-- WooCommerce 10.9 or newer
+- WordPress 6.7.0 or newer
+- WooCommerce 10.1.0 or newer when WooCommerce integration is used
 
-The primary development and initial test targets are:
-
-- WordPress 7.0
-- WooCommerce 10.9.4
-- the currently installed supported PHP 8.x version
+WooCommerce is optional.
 
 The project uses Composer, namespaces, and PSR-4 autoloading.
 
-See [TECHNICAL_REQUIREMENTS.md](TECHNICAL_REQUIREMENTS.md) for the complete platform, provider, accessibility, testing, performance, and packaging requirements.
+See [TECHNICAL_REQUIREMENTS.md](TECHNICAL_REQUIREMENTS.md) for the complete platform, provider, accessibility, testing, performance, packaging, and release requirements.
 
 ## Verification behaviour
 
@@ -202,14 +216,16 @@ Provider responses are mapped into a common result model:
 
 Protected forms fail closed when verification cannot be completed.
 
-Visitors receive simple, plugin-owned, translatable messages. Raw provider errors, stack traces, credentials, submitted tokens, and complete provider payloads are not exposed to visitors.
+Visitors receive simple, plugin-owned, translatable messages.
+
+Raw provider errors, stack traces, credentials, submitted tokens, and complete provider payloads are not exposed to visitors.
 
 ## Security
 
 - Provider secrets remain server-side.
 - Submitted CAPTCHA tokens are treated as untrusted input.
 - CAPTCHA tokens are not stored.
-- Provider verification is performed only after a protected form is submitted.
+- Provider verification is performed only after a protected action is submitted.
 - Provider HTTP calls use a small HTTP client abstraction.
 - Provider implementations do not call WordPress HTTP functions directly.
 - CAPTCHA is one anti-abuse control and should not be treated as complete protection by itself.
@@ -229,6 +245,24 @@ Custom integrations must:
 
 The project does not claim guaranteed legal or accessibility compliance.
 
+## Internationalization
+
+WP Captcha Shield uses the text domain:
+
+```text
+wp-captcha-shield
+```
+
+The generated translation template is:
+
+```text
+languages/wp-captcha-shield.pot
+```
+
+POT generation excludes generated and development-only directories such as `build`, `vendor`, `tests`, and `coverage`.
+
+Translator comments are added where placeholder strings need extraction context.
+
 ## Performance
 
 The plugin is designed to:
@@ -240,11 +274,12 @@ The plugin is designed to:
 - avoid repeated WordPress option reads;
 - keep the main plugin bootstrap lightweight;
 - load admin assets only on the plugin settings page;
-- avoid unnecessary runtime dependencies.
+- avoid unnecessary runtime dependencies;
+- use minified assets in production builds.
 
 ## Development
 
-Install the PHP dependencies:
+Install PHP dependencies:
 
 ```bash
 composer install
@@ -265,7 +300,7 @@ composer check
 
 Command responsibilities:
 
-- `composer test` — run the configured PHP test suites;
+- `composer test` — run the complete PHPUnit test suite;
 - `composer test:unit` — run isolated unit tests;
 - `composer test:integration` — run integration tests;
 - `composer test:coverage` — run unit tests and generate a Clover coverage report;
@@ -274,34 +309,41 @@ Command responsibilities:
 - `composer fix` — apply automatically fixable coding-standard changes;
 - `composer check` — run all required PHP quality checks.
 
-The project follows a test-first workflow. New behaviour should be introduced with the smallest relevant test, followed by the minimum implementation and then refactoring while the tests remain green.
+The project follows a test-first workflow.
 
-See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing practices, static-analysis rules, coverage expectations, and completion criteria.
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for coding conventions, testing practices, static-analysis rules, localization rules, coverage expectations, and completion criteria.
 
 ## Testing strategy
 
-The current PHP test suite covers the implemented:
+The PHP test suite covers the implemented:
 
 - Domain behaviour;
+- environment compatibility behaviour;
 - provider verification behaviour;
 - settings persistence and configuration;
 - WordPress HTTP and application adapters;
 - shared CAPTCHA widget rendering;
-- WordPress login integration;
-- WordPress registration integration;
-- WordPress lost-password integration;
-- WordPress comments integration.
+- WordPress login;
+- WordPress registration;
+- WordPress lost password;
+- WordPress comments;
+- WooCommerce bootstrap and availability;
+- WooCommerce login;
+- WooCommerce registration;
+- WooCommerce lost password;
+- WooCommerce product reviews;
+- WooCommerce Classic Checkout;
+- WooCommerce Checkout Block;
+- admin settings page components.
 
-The complete version 1 testing strategy also requires:
+Release validation also requires:
 
-- WooCommerce integration tests;
-- Playwright end-to-end tests for critical browser journeys;
-- minimum-version compatibility tests;
-- manual verification against live CAPTCHA providers.
+- Playwright end-to-end coverage for critical browser journeys;
+- minimum-version compatibility testing;
+- manual verification against live CAPTCHA providers;
+- real-hostname verification for hCaptcha Invisible.
 
 Automated tests must not call live CAPTCHA services or attempt to solve live CAPTCHA challenges.
-
-WooCommerce integration tests must cover both classic and block-based checkout behaviour where their technical boundaries differ.
 
 ## Code coverage
 
@@ -319,20 +361,25 @@ The command generates:
 coverage/clover.xml
 ```
 
-The `coverage/` directory contains generated output and must not be committed.
+Generated coverage output must not be committed.
 
-GitHub Actions runs a dedicated coverage job on PHP 8.1, the project's minimum supported PHP version. The coverage job uses PCOV and uploads the Clover report to Codecov.
+GitHub Actions contains a dedicated coverage workflow path using PCOV and Codecov.
 
-The normal PHP 8.1, 8.2, and 8.3 test matrix continues to run without coverage instrumentation. This avoids generating duplicate coverage reports while preserving compatibility testing across supported PHP versions.
+Coverage percentages do not replace behavioural testing, architecture review, static analysis, coding-standard checks, WordPress/WooCommerce integration tests, or manual provider verification.
 
-Codecov reports two different measurements:
+## Packaging and release
 
-- project coverage for the complete measured codebase;
-- patch coverage for lines changed by a pull request.
+The repository contains CI and release automation, including:
 
-Project coverage is initially informational. Patch coverage is used to identify newly introduced or changed production code that lacks meaningful tests.
+- PHP CI;
+- coverage reporting;
+- documentation deployment;
+- pull-request labelling;
+- release packaging.
 
-Coverage percentages do not replace behavioural testing, architecture review, static analysis, coding-standard checks, WordPress integration tests, WooCommerce integration tests, or manual provider verification.
+The production package excludes development-only files and dependencies according to the project packaging rules.
+
+Production assets must be minified before final release packaging.
 
 ## Data cleanup
 

@@ -5,16 +5,14 @@
 Minimum supported versions:
 
 - PHP 8.1 or newer
-- WordPress 6.9 or newer
-- WooCommerce 10.9 or newer
+- WordPress 6.7.0 or newer
+- WooCommerce 10.1.0 or newer when WooCommerce protection is used
 
-Primary development and initial test environment:
+WooCommerce is optional. WordPress form protection remains available when WooCommerce is inactive.
 
-- WordPress 7.0
-- WooCommerce 10.9.4
-- The currently installed PHP 8.x version
+Version compatibility comparisons must treat shortened release strings such as `6.7` as equivalent to `6.7.0` where appropriate.
 
-Compatibility testing must also cover the minimum supported versions.
+Primary development and release validation should use supported current versions while retaining explicit compatibility testing at the minimum supported versions.
 
 ## 2. Composer, namespaces, and autoloading
 
@@ -22,6 +20,7 @@ Compatibility testing must also cover the minimum supported versions.
 - Production PHP code must use namespaces.
 - PSR-4 autoloading must be used.
 - The main plugin file must remain a thin WordPress bootstrap.
+- Application composition belongs in `src/WordPress/Bootstrap/Plugin.php`.
 - Runtime dependencies must remain minimal.
 - Development dependencies must not be included in the production ZIP.
 
@@ -59,25 +58,55 @@ All provider responses must be mapped into the common verification result.
 - Use the official hCaptcha integration.
 - Verify tokens server-side.
 
-## 4. Plugin settings and credentials
+## 4. Supported forms
 
-Provide one WordPress admin settings page with:
+### WordPress
 
-- General settings
-- Cloudflare Turnstile settings
-- Google reCAPTCHA settings
-- hCaptcha settings
+Version 1 supports CAPTCHA protection for:
+
+- Login
+- Registration
+- Lost password
+- Comments
+
+### WooCommerce
+
+Version 1 supports CAPTCHA protection for:
+
+- Login
+- Registration
+- Lost password
+- Product reviews
+- Classic checkout
+- Checkout Block
+
+WooCommerce product reviews must remain independently configurable from WordPress comments.
+
+Classic Checkout and Checkout Block must share the same user-facing WooCommerce checkout provider setting while retaining separate technical integrations.
+
+## 5. Plugin settings and credentials
+
+Provide one WordPress admin settings page with tabs for:
+
+- General
+- Cloudflare Turnstile
+- Google reCAPTCHA
+- hCaptcha
+- Status
 
 Requirements:
 
 - Global default and per-form provider selection
 - Separate provider sections
 - Hidden stored secret values
-- Warnings for incomplete provider configuration
+- Contextual field guidance where useful
+- Warnings or guidance for incomplete provider configuration
+- Status information for supported PHP, WordPress, and WooCommerce versions
 - Repository-based settings access
 - No direct persistence or provider calls from the admin page
+- Admin CSS and JavaScript loaded only on the plugin settings page
 
-## 5. Provider HTTP communication
+## 6. Provider HTTP communication
 
 - Providers depend on a small HTTP client abstraction.
 - The WordPress implementation uses the WordPress HTTP API.
@@ -86,17 +115,43 @@ Requirements:
 - Ordinary automated tests must not call live providers.
 - Provider calls occur only after protected form submission.
 
-## 6. Form rendering and token submission
+## 7. Form rendering and token submission
 
-- Use the appropriate WordPress and WooCommerce hooks.
+- Use the appropriate WordPress and WooCommerce hooks or platform APIs.
 - Render only the effective provider.
 - Do not load CAPTCHA when protection is disabled.
-- Submit the provider token with the form.
+- Submit the provider token with the protected action.
 - Verify server-side before completing the protected action.
 - Keep hook callbacks thin.
 - Exact hook names remain implementation details.
 
-## 7. Logging and diagnostics
+Executable provider modes may delay form submission until a token has been generated.
+
+## 8. WooCommerce Classic Checkout
+
+Classic Checkout must:
+
+- render CAPTCHA near and before the Place order action;
+- preserve protection through WooCommerce AJAX checkout updates;
+- rehydrate provider widgets after relevant checkout markup is replaced;
+- prevent asynchronous CAPTCHA execution from racing checkout submission;
+- use the shared WooCommerce checkout provider configuration.
+
+Provider-specific rehydration may exist in frontend JavaScript while the PHP checkout integration remains provider-neutral.
+
+## 9. WooCommerce Checkout Block
+
+Checkout Block must:
+
+- integrate with the WooCommerce Store API checkout flow;
+- pass CAPTCHA token data through WooCommerce checkout extension data;
+- verify CAPTCHA server-side before checkout completion;
+- use a provider-neutral browser bridge for checkout token transfer;
+- use the same user-facing checkout provider configuration as Classic Checkout.
+
+The Block integration must not introduce provider-specific branching into the WooCommerce integration layer.
+
+## 10. Logging and diagnostics
 
 Version 1 has no dedicated logging subsystem.
 
@@ -106,17 +161,20 @@ Version 1 has no dedicated logging subsystem.
 - No token, credential, or full provider-payload logging
 - Debug-only server diagnostics may use standard WordPress or PHP logging
 - Visitors receive simple retry messages
-- Configuration problems appear as admin warnings
+- Configuration problems appear through admin guidance where appropriate
 
-## 8. Internationalization
+## 11. Internationalization
 
-- Use one consistent text domain.
+- Use one consistent text domain: `wp-captcha-shield`.
 - Make all admin and visitor strings translatable.
 - Pass the text domain explicitly.
 - Escape translated output for its final context.
 - Map provider failures to plugin-owned translatable messages.
+- Maintain the generated translation template at `languages/wp-captcha-shield.pot`.
+- Add translator comments where placeholders require context.
+- POT generation must exclude generated and development-only directories such as `build`, `vendor`, `tests`, and `coverage`.
 
-## 9. Accessibility
+## 12. Accessibility
 
 - Use official provider widgets and APIs.
 - Preserve provider accessibility controls.
@@ -130,25 +188,25 @@ Version 1 has no dedicated logging subsystem.
 - Do not create an automated bypass.
 - Do not claim guaranteed legal or accessibility compliance.
 
-## 10. Performance and script loading
+## 13. Performance and script loading
 
 - Load scripts only on pages containing a protected form.
 - Load only the effective provider.
 - Do not load multiple providers unnecessarily.
-- Do not initialize WooCommerce integration when WooCommerce is inactive.
+- Do not initialize WooCommerce integrations when WooCommerce is inactive.
 - Load settings once per request and reuse them.
 - Avoid repeated `get_option()` calls.
-- Keep bootstrap lightweight.
+- Keep the main plugin bootstrap lightweight.
 - Load admin assets only on the plugin settings page.
 - Avoid heavy runtime dependencies.
 - Minify production assets.
 - Base optimizations on measurement.
 
-## 11. Deactivation, uninstall, and data cleanup
+## 14. Deactivation, uninstall, and data cleanup
 
 ### Deactivation
 
-Preserve all settings, credentials, and provider configuration.
+Preserve all settings, credentials, global defaults, per-form settings, and provider configuration.
 
 ### Uninstallation
 
@@ -168,23 +226,50 @@ Uninstall must:
 - avoid contacting external providers;
 - consider multisite if network activation is supported.
 
-## 12. Testing requirements
+## 15. Testing requirements
 
 The project must include:
 
-- domain tests;
+- Domain tests;
 - provider tests;
 - repository tests;
 - WordPress integration tests;
 - WooCommerce integration tests;
-- Playwright end-to-end tests;
+- dedicated coverage for Classic and Block checkout integration boundaries;
+- Playwright end-to-end tests for critical browser journeys;
 - minimum-version compatibility tests.
 
-Automated E2E tests must not solve live CAPTCHAs. Provider outcomes must use deterministic test seams. Real provider verification is tested manually before release.
+Automated E2E tests must not solve live CAPTCHAs.
 
-## 13. Packaging and WordPress.org requirements
+Provider outcomes must use deterministic test seams.
 
-The source repository includes tests, tooling, configuration, fixtures, CI, and packaging scripts.
+Real provider verification is tested manually before release.
+
+hCaptcha Invisible must be verified on a real hostname because localhost behaviour is not a reliable release-validation environment for that mode.
+
+## 16. Static analysis and coding standards
+
+Production code must pass the configured:
+
+- PHPUnit test suite;
+- PHPStan analysis;
+- PHP_CodeSniffer ruleset.
+
+The aggregate local quality command is:
+
+```text
+composer check
+```
+
+Coverage is generated separately through:
+
+```text
+composer test:coverage
+```
+
+## 17. Packaging and release requirements
+
+The source repository includes tests, tooling, configuration, fixtures, CI, documentation tooling, and packaging scripts.
 
 The production ZIP excludes:
 
@@ -198,4 +283,36 @@ The production ZIP excludes:
 - caches
 - unnecessary build tooling
 
-Releases must use a repeatable build process. Runtime dependencies must be packaged correctly. Development dependencies must be excluded. External services, privacy implications, and provider terms must be documented. GitHub Actions may later run tests, static analysis, coding standards, E2E checks, packaging validation, and release generation.
+Releases must use a repeatable build process.
+
+The repository includes a release workflow for packaged builds.
+
+Runtime dependencies must be packaged correctly.
+
+Development dependencies must be excluded.
+
+External services, privacy implications, and provider terms must be documented.
+
+Production JavaScript and CSS assets must be minified before final production release packaging.
+
+## 18. Current beta milestone
+
+The current plugin version is:
+
+```text
+0.1.0-beta1
+```
+
+At this milestone:
+
+- all planned WordPress form integrations are implemented;
+- all planned WooCommerce form integrations are implemented;
+- Classic Checkout AJAX rehydration is implemented;
+- Checkout Block Store API integration is implemented;
+- the admin settings UI includes provider tabs and environment status information;
+- plugin dependency composition is centralized in the `Plugin` composition root;
+- WordPress form registration and WooCommerce registration are coordinated by dedicated bootstraps;
+- translation extraction produces `languages/wp-captcha-shield.pot`;
+- CI, coverage, documentation deployment, PR labelling, and release workflows exist.
+
+Remaining release-hardening work must continue to satisfy all requirements above, including production asset minification and final compatibility/manual provider validation.
