@@ -1,0 +1,395 @@
+# Copyright (C) 2026 Velmurugan Kuberan
+# This file is distributed under the GPL-3.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Captcha Shield 0.1.0-beta1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-captcha-shield\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-16T12:29:03+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wp-captcha-shield\n"
+
+#. Plugin Name of the plugin
+#: wp-captcha-shield.php
+#: src/WordPress/Admin/SettingsPage.php:30
+#: src/WordPress/Admin/SettingsPage.php:31
+#: src/WordPress/Admin/SettingsPageView.php:30
+msgid "WP Captcha Shield"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-captcha-shield.php
+msgid "https://github.com/velukuberan/wp-captcha-shield"
+msgstr ""
+
+#. Description of the plugin
+#: wp-captcha-shield.php
+msgid "Protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers."
+msgstr ""
+
+#. Author of the plugin
+#: wp-captcha-shield.php
+msgid "Velmurugan Kuberan"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-captcha-shield.php
+msgid "https://vkuberan.in"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:30
+msgid "General"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:44
+msgid "General settings"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:52
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:66
+msgid "Default provider"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:67
+msgid "Used by forms configured to “Use default”. Individual forms can override this setting."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:81
+msgid "WordPress forms"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:86
+msgid "WooCommerce forms"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:115
+msgid "Protects both Classic Checkout and Checkout Block. “Use default” inherits the Default provider setting."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:120
+msgid "Choose the CAPTCHA provider for this form. “Use default” inherits the Default provider setting."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:144
+msgid "Use default"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:169
+msgid "Disabled"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:175
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:28
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:40
+msgid "Cloudflare Turnstile"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:176
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:24
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:36
+msgid "Google reCAPTCHA"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GeneralSettingsSection.php:177
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:24
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:36
+msgid "hCaptcha"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:41
+msgid "Project ID"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:44
+msgid "Google Cloud project containing the reCAPTCHA Enterprise configuration."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:52
+msgid "API key"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:55
+msgid "Server-side Google Cloud API key used to create reCAPTCHA assessments."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:63
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:41
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:62
+msgid "Site key"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:66
+msgid "reCAPTCHA Enterprise site key used by protected forms in the browser."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:74
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:84
+msgid "Mode"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:78
+msgid "Score-based"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:79
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:67
+msgid "Checkbox"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:80
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:68
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:90
+msgid "Invisible"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:82
+msgid "Determines how reCAPTCHA interacts with visitors. Score-based is recommended for most sites."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:90
+msgid "Minimum score"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/GoogleRecaptchaSettingsSection.php:97
+msgid "Minimum acceptable score for score-based verification. Higher values are stricter. Use a value between 0 and 1."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:44
+msgid "Public site key supplied by hCaptcha and used to display the CAPTCHA."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:52
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:73
+msgid "Secret key"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:55
+msgid "Private server-side key used to verify submitted hCaptcha tokens."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:63
+msgid "Display mode"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/HCaptchaSettingsSection.php:70
+msgid "Controls how hCaptcha is presented to visitors. Checkbox is the default option."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:28
+#: src/WordPress/Admin/Sections/StatusSection.php:56
+msgid "Status"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:43
+msgid "Status and compatibility"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:45
+msgid "Compare the current environment with the minimum versions supported by WP Captcha Shield."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:53
+msgid "Component"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:54
+msgid "Minimum supported"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:55
+msgid "Current"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:62
+msgid "PHP"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:68
+msgid "WordPress"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:76
+#: src/WordPress/Admin/Sections/StatusSection.php:83
+msgid "WooCommerce"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:78
+msgid "Not active"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:93
+msgid "WooCommerce is optional. WordPress form protection remains available when WooCommerce is not active."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:100
+msgid "WooCommerce versions below 10.1.0 are outside the supported compatibility range."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:114
+msgid "Optional"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:118
+msgid "Compatible"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/StatusSection.php:121
+msgid "Unsupported"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:43
+msgid "The widget mode is configured in your Cloudflare Turnstile dashboard."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:50
+msgid "Select the same mode here as the mode configured for this site key. Changing this setting does not change the widget mode in Cloudflare."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:65
+msgid "Public site key supplied by Cloudflare. It is used in the browser to render Turnstile."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:76
+msgid "Private key supplied by Cloudflare and used only on the server to verify CAPTCHA tokens."
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:88
+msgid "Managed"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:89
+msgid "Non-Interactive"
+msgstr ""
+
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:92
+msgid "Must match the widget mode configured for this site key in Cloudflare. Managed is recommended for most sites."
+msgstr ""
+
+#. translators: %s: URL to the Cloudflare Turnstile Privacy Addendum.
+#: src/WordPress/Admin/Sections/TurnstileSettingsSection.php:110
+#, php-format
+msgid "Cloudflare requires websites using Invisible Turnstile to reference the <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">Turnstile Privacy Addendum</a> in their privacy policy."
+msgstr ""
+
+#: src/WordPress/Admin/SettingsFieldRenderer.php:77
+msgid "A value is stored. Leave blank to keep it unchanged."
+msgstr ""
+
+#. translators: %s: Settings field label.
+#: src/WordPress/Admin/SettingsFieldRenderer.php:140
+#, php-format
+msgid "Help for %s"
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPage.php:64
+msgid "You are not allowed to manage these settings."
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPageView.php:49
+msgid "Settings saved."
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPageView.php:93
+msgid "WP Captcha Shield settings"
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPageView.php:122
+msgid "Cloudflare Turnstile configuration is incomplete."
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPageView.php:130
+msgid "Google reCAPTCHA configuration is incomplete."
+msgstr ""
+
+#: src/WordPress/Admin/SettingsPageView.php:137
+msgid "hCaptcha configuration is incomplete."
+msgstr ""
+
+#: src/WordPress/Forms/Comments/CommentFormIntegration.php:117
+msgid "Comment submission blocked"
+msgstr ""
+
+#: src/WordPress/Forms/Comments/CommentFormIntegration.php:215
+#: src/WordPress/Forms/Login/LoginFormIntegration.php:191
+#: src/WordPress/Forms/LostPassword/LostPasswordFormIntegration.php:162
+#: src/WordPress/Forms/Registration/RegistrationFormIntegration.php:187
+#: src/WordPress/WooCommerce/Checkout/WooCommerceBlockCheckoutIntegration.php:216
+#: src/WordPress/WooCommerce/Checkout/WooCommerceClassicCheckoutIntegration.php:168
+#: src/WordPress/WooCommerce/Login/WooCommerceLoginFormIntegration.php:161
+#: src/WordPress/WooCommerce/LostPassword/WooCommerceLostPasswordFormIntegration.php:172
+#: src/WordPress/WooCommerce/ProductReviews/WooCommerceProductReviewFormIntegration.php:204
+#: src/WordPress/WooCommerce/Registration/WooCommerceRegistrationFormIntegration.php:165
+msgid "CAPTCHA verification is temporarily unavailable. Please try again."
+msgstr ""
+
+#: src/WordPress/Forms/Comments/CommentFormIntegration.php:222
+#: src/WordPress/Forms/Login/LoginFormIntegration.php:198
+#: src/WordPress/Forms/LostPassword/LostPasswordFormIntegration.php:165
+#: src/WordPress/Forms/Registration/RegistrationFormIntegration.php:194
+#: src/WordPress/WooCommerce/Checkout/WooCommerceBlockCheckoutIntegration.php:223
+#: src/WordPress/WooCommerce/Checkout/WooCommerceClassicCheckoutIntegration.php:175
+#: src/WordPress/WooCommerce/Login/WooCommerceLoginFormIntegration.php:168
+#: src/WordPress/WooCommerce/LostPassword/WooCommerceLostPasswordFormIntegration.php:179
+#: src/WordPress/WooCommerce/ProductReviews/WooCommerceProductReviewFormIntegration.php:211
+#: src/WordPress/WooCommerce/Registration/WooCommerceRegistrationFormIntegration.php:172
+msgid "CAPTCHA verification could not be completed. Please contact the site administrator."
+msgstr ""
+
+#: src/WordPress/Forms/Comments/CommentFormIntegration.php:228
+#: src/WordPress/Forms/Login/LoginFormIntegration.php:204
+#: src/WordPress/Forms/LostPassword/LostPasswordFormIntegration.php:170
+#: src/WordPress/Forms/Registration/RegistrationFormIntegration.php:200
+#: src/WordPress/WooCommerce/Checkout/WooCommerceBlockCheckoutIntegration.php:94
+#: src/WordPress/WooCommerce/Checkout/WooCommerceBlockCheckoutIntegration.php:229
+#: src/WordPress/WooCommerce/Checkout/WooCommerceClassicCheckoutIntegration.php:181
+#: src/WordPress/WooCommerce/Login/WooCommerceLoginFormIntegration.php:174
+#: src/WordPress/WooCommerce/LostPassword/WooCommerceLostPasswordFormIntegration.php:185
+#: src/WordPress/WooCommerce/ProductReviews/WooCommerceProductReviewFormIntegration.php:217
+#: src/WordPress/WooCommerce/Registration/WooCommerceRegistrationFormIntegration.php:178
+msgid "CAPTCHA verification failed. Please try again."
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:23
+msgid "WordPress login"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:24
+msgid "WordPress registration"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:25
+msgid "WordPress lost password"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:26
+msgid "WordPress comments"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:27
+msgid "WooCommerce login"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:28
+msgid "WooCommerce registration"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:29
+msgid "WooCommerce lost password"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:30
+msgid "WooCommerce product reviews"
+msgstr ""
+
+#: src/WordPress/Forms/SupportedForms.php:31
+msgid "WooCommerce checkout"
+msgstr ""
+
+#: src/WordPress/WooCommerce/ProductReviews/WooCommerceProductReviewFormIntegration.php:115
+msgid "Review submission blocked"
+msgstr ""
