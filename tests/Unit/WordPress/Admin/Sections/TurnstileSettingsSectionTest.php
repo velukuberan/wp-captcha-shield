@@ -2,25 +2,23 @@
 
 declare(strict_types=1);
 
-namespace WpCaptchaShield\Tests\Unit\WordPress\Admin;
+namespace WpCaptchaShield\Tests\Unit\WordPress\Admin\Sections;
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use WpCaptchaShield\Domain\Configuration\GlobalCaptchaSetting;
 use WpCaptchaShield\Domain\Configuration\Provider\CloudflareTurnstileMode;
-use WpCaptchaShield\WordPress\Admin\SettingsInputMapper;
-use WpCaptchaShield\WordPress\Admin\SettingsPage;
+use WpCaptchaShield\WordPress\Admin\Sections\TurnstileSettingsSection;
+use WpCaptchaShield\WordPress\Admin\SettingsFieldRenderer;
 use WpCaptchaShield\WordPress\Settings\GoogleRecaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\HCaptchaSettings;
 use WpCaptchaShield\WordPress\Settings\PluginSettings;
-use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 use WpCaptchaShield\WordPress\Settings\TurnstileSettings;
 
-final class SettingsPageTurnstileGuidanceTest extends TestCase
+final class TurnstileSettingsSectionTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -45,11 +43,18 @@ final class SettingsPageTurnstileGuidanceTest extends TestCase
         parent::tearDown();
     }
 
+    public function testSlugLabelAndSubmitButton(): void
+    {
+        $section = new TurnstileSettingsSection(new SettingsFieldRenderer());
+
+        self::assertSame('turnstile', $section->slug());
+        self::assertSame('Cloudflare Turnstile', $section->label());
+        self::assertTrue($section->showsSubmitButton());
+    }
+
     public function testItExplainsThatCloudflareControlsTheWidgetMode(): void
     {
-        $output = $this->renderTurnstileSection(
-            CloudflareTurnstileMode::Managed,
-        );
+        $output = $this->render(CloudflareTurnstileMode::Managed);
 
         self::assertStringContainsString(
             'The widget mode is configured in your Cloudflare Turnstile dashboard.',
@@ -63,9 +68,7 @@ final class SettingsPageTurnstileGuidanceTest extends TestCase
 
     public function testItShowsThePrivacyWarningForInvisibleMode(): void
     {
-        $output = $this->renderTurnstileSection(
-            CloudflareTurnstileMode::Invisible,
-        );
+        $output = $this->render(CloudflareTurnstileMode::Invisible);
 
         self::assertStringContainsString(
             'Cloudflare requires websites using Invisible Turnstile',
@@ -89,7 +92,7 @@ final class SettingsPageTurnstileGuidanceTest extends TestCase
     public function testItDoesNotShowThePrivacyWarningForVisibleModes(
         CloudflareTurnstileMode $mode,
     ): void {
-        $output = $this->renderTurnstileSection($mode);
+        $output = $this->render($mode);
 
         self::assertStringNotContainsString(
             'Cloudflare requires websites using Invisible Turnstile',
@@ -108,14 +111,10 @@ final class SettingsPageTurnstileGuidanceTest extends TestCase
         ];
     }
 
-    private function renderTurnstileSection(
-        CloudflareTurnstileMode $mode,
-    ): string {
-        $repository = Mockery::mock(SettingsRepository::class);
-        $page = new SettingsPage(
-            $repository,
-            new SettingsInputMapper(),
-        );
+    private function render(CloudflareTurnstileMode $mode): string
+    {
+        $section = new TurnstileSettingsSection(new SettingsFieldRenderer());
+
         $settings = new PluginSettings(
             GlobalCaptchaSetting::disabled(),
             [],
@@ -128,14 +127,8 @@ final class SettingsPageTurnstileGuidanceTest extends TestCase
             HCaptchaSettings::defaults(),
         );
 
-        $method = new ReflectionMethod(
-            SettingsPage::class,
-            'renderTurnstileSection',
-        );
-        $method->setAccessible(true);
-
         ob_start();
-        $method->invoke($page, $settings);
+        $section->render($settings);
         $output = ob_get_clean();
 
         self::assertIsString($output);
