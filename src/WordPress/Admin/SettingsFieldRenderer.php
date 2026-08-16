@@ -134,12 +134,18 @@ final class SettingsFieldRenderer
         if ($help === null) {
             return;
         }
+
+        $helpLabel = sprintf(
+            /* translators: %s: Settings field label. */
+            __('Help for %s', 'wp-captcha-shield'),
+            $label,
+        );
         ?>
         <span class="wp-captcha-shield-help">
             <button
                 type="button"
                 class="wp-captcha-shield-help-button"
-                aria-label="<?php echo esc_attr(sprintf(__('Help for %s', 'wp-captcha-shield'), $label)); ?>"
+                aria-label="<?php echo esc_attr($helpLabel); ?>"
                 aria-describedby="<?php echo esc_attr($id . '-help'); ?>"
             >?</button>
             <span

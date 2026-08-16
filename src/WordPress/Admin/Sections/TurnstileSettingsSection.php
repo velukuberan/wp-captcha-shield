@@ -106,6 +106,7 @@ final class TurnstileSettingsSection implements SettingsTabSection
                                 <?php
                                 printf(
                                     wp_kses(
+                                        /* translators: %s: URL to the Cloudflare Turnstile Privacy Addendum. */
                                         __(
                                             'Cloudflare requires websites using Invisible Turnstile to '
                                             . 'reference the <a href="%s" target="_blank" '
