@@ -5,9 +5,17 @@ declare(strict_types=1);
 namespace WpCaptchaShield\WordPress\Bootstrap;
 
 use WpCaptchaShield\Domain\Configuration\EffectiveCaptchaProviderResolver;
+use WpCaptchaShield\Domain\Environment\EnvironmentCompatibility;
+use WpCaptchaShield\WordPress\Admin\Sections\GeneralSettingsSection;
+use WpCaptchaShield\WordPress\Admin\Sections\GoogleRecaptchaSettingsSection;
+use WpCaptchaShield\WordPress\Admin\Sections\HCaptchaSettingsSection;
+use WpCaptchaShield\WordPress\Admin\Sections\StatusSection;
+use WpCaptchaShield\WordPress\Admin\Sections\TurnstileSettingsSection;
+use WpCaptchaShield\WordPress\Admin\SettingsFieldRenderer;
 use WpCaptchaShield\WordPress\Admin\SettingsInputMapper;
 use WpCaptchaShield\WordPress\Admin\SettingsPage;
 use WpCaptchaShield\WordPress\Admin\SettingsPageRegistrar;
+use WpCaptchaShield\WordPress\Admin\SettingsPageView;
 use WpCaptchaShield\WordPress\Bootstrap\Configuration\CaptchaProviderConfigurationFactory;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetRenderer;
 use WpCaptchaShield\WordPress\Forms\Captcha\CaptchaWidgetResolver;
@@ -90,10 +98,20 @@ final class Plugin
         SettingsRepository $settingsRepository,
     ): void {
         $supportedForms = new SupportedForms();
+        $fieldRenderer = new SettingsFieldRenderer();
+
+        $settingsPageView = new SettingsPageView([
+            new GeneralSettingsSection($fieldRenderer, $supportedForms->labels()),
+            new TurnstileSettingsSection($fieldRenderer),
+            new GoogleRecaptchaSettingsSection($fieldRenderer),
+            new HCaptchaSettingsSection($fieldRenderer),
+            new StatusSection(new EnvironmentCompatibility()),
+        ]);
 
         $settingsPage = new SettingsPage(
             $settingsRepository,
             new SettingsInputMapper(),
+            $settingsPageView,
             $supportedForms->labels(),
         );
 

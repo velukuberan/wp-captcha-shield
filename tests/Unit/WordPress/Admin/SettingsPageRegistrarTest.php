@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use WpCaptchaShield\WordPress\Admin\SettingsInputMapper;
 use WpCaptchaShield\WordPress\Admin\SettingsPage;
 use WpCaptchaShield\WordPress\Admin\SettingsPageRegistrar;
+use WpCaptchaShield\WordPress\Admin\SettingsPageView;
 use WpCaptchaShield\WordPress\Settings\SettingsRepository;
 
 final class SettingsPageRegistrarTest extends TestCase
@@ -33,6 +34,7 @@ final class SettingsPageRegistrarTest extends TestCase
         $page = new SettingsPage(
             Mockery::mock(SettingsRepository::class),
             new SettingsInputMapper(),
+            new SettingsPageView(),
         );
         $registrar = new SettingsPageRegistrar($page);
 
