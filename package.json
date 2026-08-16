@@ -1,0 +1,10 @@
+{
+  "name": "wp-captcha-shield",
+  "private": true,
+  "scripts": {
+    "minify:js": "terser"
+  },
+  "devDependencies": {
+    "terser": "^5.50.0"
+  }
+}
