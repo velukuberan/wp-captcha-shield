@@ -28,6 +28,12 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
       - name: Install production dependencies
         run: |
           composer install \
@@ -36,6 +42,9 @@ jobs:
             --classmap-authoritative \
             --no-interaction \
             --no-progress
+
+      - name: Install frontend build dependencies
+        run: npm ci
 
       - name: Determine version label
         id: version
@@ -67,6 +76,19 @@ jobs:
             --exclude='.git' \
             --exclude='build' \
             ./ "build/${SLUG}/"
+
+      - name: Minify production JavaScript
+        run: |
+          find build/wp-captcha-shield/assets/js \
+            -type f \
+            -name '*.js' \
+            -print0 |
+          while IFS= read -r -d '' file; do
+            npx --no-install terser "$file" \
+              --compress \
+              --mangle \
+              --output "$file"
+          done
 
       - name: Create zip
         id: zip
