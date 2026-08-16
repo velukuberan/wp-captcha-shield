@@ -110,6 +110,22 @@ final class SettingsPageAdminUiTest extends TestCase
         );
     }
 
+    public function testStatusTabTreatsAShortWordPressVersionAsCompatible(): void
+    {
+        // WordPress reports "round" releases without a trailing patch
+        // component (e.g. "6.7" for the initial 6.7 release, not
+        // "6.7.0"). A naive version_compare() against the minimum
+        // "6.7.0" would incorrectly flag this as unsupported.
+        Functions\when('get_bloginfo')->alias(
+            static fn (string $show): string => $show === 'version' ? '6.7' : '',
+        );
+
+        $output = $this->renderPrivateMethod('renderStatusSection');
+
+        self::assertStringContainsString('6.7', $output);
+        self::assertStringNotContainsString('Unsupported', $output);
+    }
+
     public function testItLoadsAssetsOnlyOnItsSettingsPage(): void
     {
         $page = $this->page();
