@@ -2,13 +2,23 @@
   "use strict";
 
   var WIDGET_SELECTOR = ".wp-captcha-shield-hcaptcha-invisible-widget";
+
   var REQUEST_TOKEN_EVENT = "wp-captcha-shield:request-token";
 
+  var CLASSIC_CHECKOUT_FORM_ID = "woocommerce-checkout";
+
   function initialize(container) {
+    if (container.dataset.initialized === "true") {
+      return;
+    }
+
     var formId = container.dataset.formId;
     var siteKey = container.dataset.siteKey;
     var form = findForm(container, formId);
-    var blockRoot = container.closest("[data-wp-captcha-shield-block-checkout]");
+    var blockRoot = container.closest(
+      "[data-wp-captcha-shield-block-checkout]",
+    );
+
     var widgetId = null;
     var requestingToken = false;
     var submitter = null;
@@ -28,7 +38,9 @@
 
       checkoutCompletion = null;
       checkoutFailure = null;
+
       completion(token);
+
       return true;
     }
 
@@ -41,36 +53,47 @@
 
       checkoutCompletion = null;
       checkoutFailure = null;
+
       failure();
     }
 
-    widgetId = hcaptcha.render(container, {
-      sitekey: siteKey,
-      size: "invisible",
-      callback: function (token) {
-        requestingToken = false;
+    try {
+      widgetId = hcaptcha.render(container, {
+        sitekey: siteKey,
+        size: "invisible",
 
-        if (completeCheckoutRequest(token)) {
-          return;
-        }
+        callback: function (token) {
+          requestingToken = false;
 
-        if (form) {
-          resumeSubmission(form, submitter);
-        }
-      },
-      "expired-callback": function () {
-        requestingToken = false;
-        failCheckoutRequest();
-      },
-      "error-callback": function () {
-        requestingToken = false;
-        failCheckoutRequest();
-      },
-      "close-callback": function () {
-        requestingToken = false;
-        failCheckoutRequest();
-      },
-    });
+          if (completeCheckoutRequest(token)) {
+            return;
+          }
+
+          if (form) {
+            resumeSubmission(form, submitter);
+          }
+        },
+
+        "expired-callback": function () {
+          requestingToken = false;
+          failCheckoutRequest();
+        },
+
+        "error-callback": function () {
+          requestingToken = false;
+          failCheckoutRequest();
+        },
+
+        "close-callback": function () {
+          requestingToken = false;
+          failCheckoutRequest();
+        },
+      });
+    } catch (error) {
+      return;
+    }
+
+    container.dataset.initialized = "true";
 
     function execute() {
       if (requestingToken || widgetId === null) {
@@ -83,24 +106,37 @@
         hcaptcha.execute(widgetId);
       } catch (error) {
         requestingToken = false;
+
         return false;
       }
 
       return true;
     }
 
-    if (form) {
-      form.addEventListener("submit", function (event) {
-        if (widgetId !== null && hcaptcha.getResponse(widgetId) !== "") {
-          return;
-        }
+    /*
+     * Normal forms keep the provider-level submit lifecycle.
+     *
+     * Classic WooCommerce checkout has its own asynchronous coordinator
+     * because WooCommerce serializes and submits the checkout form through
+     * its AJAX lifecycle.
+     */
+    if (form && form.id !== CLASSIC_CHECKOUT_FORM_ID) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (widgetId !== null && hcaptcha.getResponse(widgetId) !== "") {
+            return;
+          }
 
-        event.preventDefault();
-        event.stopImmediatePropagation();
+          event.preventDefault();
+          event.stopImmediatePropagation();
 
-        submitter = event.submitter || null;
-        execute();
-      }, true);
+          submitter = event.submitter || null;
+
+          execute();
+        },
+        true,
+      );
     }
 
     document.addEventListener(REQUEST_TOKEN_EVENT, function (event) {
@@ -114,6 +150,7 @@
 
       if (requestingToken || widgetId === null) {
         detail.fail();
+
         return;
       }
 
@@ -124,29 +161,37 @@
 
         if (!execution || typeof execution.then !== "function") {
           requestingToken = false;
+
           detail.fail();
+
           return;
         }
 
-        execution.then(function (result) {
-          requestingToken = false;
+        execution
+          .then(function (result) {
+            requestingToken = false;
 
-          var token = result && typeof result.response === "string"
-            ? result.response
-            : hcaptcha.getResponse(widgetId);
+            var token =
+              result && typeof result.response === "string"
+                ? result.response
+                : hcaptcha.getResponse(widgetId);
 
-          if (!token) {
+            if (!token) {
+              detail.fail();
+
+              return;
+            }
+
+            detail.complete(token);
+          })
+          .catch(function () {
+            requestingToken = false;
+
             detail.fail();
-            return;
-          }
-
-          detail.complete(token);
-        }).catch(function () {
-          requestingToken = false;
-          detail.fail();
-        });
+          });
       } catch (error) {
         requestingToken = false;
+
         detail.fail();
       }
     });
@@ -168,26 +213,42 @@
     if (typeof form.requestSubmit === "function") {
       if (submitter) {
         form.requestSubmit(submitter);
+
         return;
       }
 
       form.requestSubmit();
+
       return;
     }
 
     form.submit();
   }
 
-  window.wpCaptchaShieldHCaptchaOnload = function () {
-    if (
-      typeof hcaptcha === "undefined" ||
-      typeof hcaptcha.render !== "function" ||
-      typeof hcaptcha.execute !== "function" ||
-      typeof hcaptcha.getResponse !== "function"
-    ) {
+  function hcaptchaIsAvailable() {
+    return (
+      typeof hcaptcha !== "undefined" &&
+      typeof hcaptcha.render === "function" &&
+      typeof hcaptcha.execute === "function" &&
+      typeof hcaptcha.getResponse === "function"
+    );
+  }
+
+  function initializeWidgets() {
+    if (!hcaptchaIsAvailable()) {
       return;
     }
 
     document.querySelectorAll(WIDGET_SELECTOR).forEach(initialize);
+  }
+
+  /*
+   * Classic checkout calls this after updated_checkout so newly rendered
+   * hCaptcha widgets receive their event handlers.
+   */
+  window.wpCaptchaShieldHCaptchaInitialize = initializeWidgets;
+
+  window.wpCaptchaShieldHCaptchaOnload = function () {
+    initializeWidgets();
   };
 })();

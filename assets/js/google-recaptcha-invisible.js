@@ -2,7 +2,10 @@
   "use strict";
 
   var WIDGET_SELECTOR = ".wp-captcha-shield-google-invisible-widget";
+
   var REQUEST_TOKEN_EVENT = "wp-captcha-shield:request-token";
+
+  var CLASSIC_CHECKOUT_FORM_ID = "woocommerce-checkout";
 
   function initialize(container) {
     if (container.dataset.initialized === "true") {
@@ -13,9 +16,15 @@
     var tokenId = container.dataset.tokenId;
     var siteKey = container.dataset.siteKey;
     var action = container.dataset.action;
+
     var form = findForm(container, formId);
-    var blockRoot = container.closest("[data-wp-captcha-shield-block-checkout]");
+
+    var blockRoot = container.closest(
+      "[data-wp-captcha-shield-block-checkout]",
+    );
+
     var tokenField = findTokenField(container, tokenId);
+
     var widgetId = null;
     var requestingToken = false;
     var submitter = null;
@@ -31,6 +40,7 @@
         sitekey: siteKey,
         size: "invisible",
         action: action,
+
         callback: function (token) {
           tokenField.value = token;
           requestingToken = false;
@@ -40,7 +50,9 @@
 
             checkoutCompletion = null;
             checkoutFailure = null;
+
             completion(token);
+
             return;
           }
 
@@ -48,14 +60,18 @@
             resumeSubmission(form, submitter);
           }
         },
+
         "expired-callback": function () {
           tokenField.value = "";
           requestingToken = false;
+
           failCheckoutRequest();
         },
+
         "error-callback": function () {
           tokenField.value = "";
           requestingToken = false;
+
           failCheckoutRequest();
         },
       });
@@ -63,6 +79,7 @@
       container.dataset.initialized = "true";
     } catch (error) {
       widgetId = null;
+
       return;
     }
 
@@ -75,6 +92,7 @@
 
       checkoutCompletion = null;
       checkoutFailure = null;
+
       failure();
     }
 
@@ -88,25 +106,55 @@
       grecaptcha.enterprise.execute(widgetId).catch(function () {
         requestingToken = false;
         tokenField.value = "";
+
         grecaptcha.enterprise.reset(widgetId);
+
         failCheckoutRequest();
       });
 
       return true;
     }
 
+    /*
+     * Normal forms keep their existing provider-level
+     * submit lifecycle.
+     *
+     * Classic WooCommerce checkout is coordinated by
+     * classic-checkout-rehydrate.js because WooCommerce
+     * submits that form through its AJAX lifecycle.
+     */
     if (form) {
-      form.addEventListener("submit", function (event) {
-        if (tokenField.value !== "") {
-          return;
-        }
+      form.addEventListener(
+        "submit",
+        function (event) {
+          /*
+           * WooCommerce Classic checkout owns its executable CAPTCHA
+           * lifecycle through classic-checkout-rehydrate.js.
+           *
+           * This check happens at submission time so even a listener
+           * belonging to an older AJAX-replaced widget cannot intercept
+           * the resumed Classic checkout submission.
+           */
+          if (
+            form.id === CLASSIC_CHECKOUT_FORM_ID ||
+            form.matches("form.checkout")
+          ) {
+            return;
+          }
 
-        event.preventDefault();
-        event.stopImmediatePropagation();
+          if (tokenField.value !== "") {
+            return;
+          }
 
-        submitter = event.submitter || null;
-        execute();
-      }, true);
+          event.preventDefault();
+          event.stopImmediatePropagation();
+
+          submitter = event.submitter || null;
+
+          execute();
+        },
+        true,
+      );
     }
 
     document.addEventListener(REQUEST_TOKEN_EVENT, function (event) {
@@ -117,6 +165,7 @@
       }
 
       detail.handled = true;
+
       tokenField.value = "";
       checkoutCompletion = detail.complete;
       checkoutFailure = detail.fail;
@@ -172,10 +221,12 @@
     if (typeof form.requestSubmit === "function") {
       if (submitter) {
         form.requestSubmit(submitter);
+
         return;
       }
 
       form.requestSubmit();
+
       return;
     }
 
@@ -199,6 +250,13 @@
   function startInitialization() {
     initializeWidgets(0);
   }
+
+  /*
+   * WooCommerce Classic checkout calls this after
+   * updated_checkout so newly rendered Google Invisible
+   * widgets receive fresh listeners.
+   */
+  window.wpCaptchaShieldGoogleInvisibleInitialize = startInitialization;
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startInitialization);
