@@ -14,6 +14,7 @@
   var resumeOnce = false;
   var pendingButton = null;
   var pendingButtonState = null;
+  var turnstileReadyInterval = null;
 
   function checkoutForm() {
     return document.querySelector("form.checkout");
@@ -211,7 +212,85 @@
     }
   }
 
+  function checkoutTurnstile() {
+    var form = checkoutForm();
+
+    if (!form) {
+      return null;
+    }
+
+    return form.querySelector(".cf-turnstile");
+  }
+
+  function turnstileTokenReady() {
+    var form = checkoutForm();
+
+    if (!form) {
+      return false;
+    }
+
+    var field = form.querySelector('[name="cf-turnstile-response"]');
+
+    return !!field && field.value.length > 0;
+  }
+
+  function setPlaceOrderEnabled(enabled) {
+    var button = document.querySelector("#place_order");
+
+    if (!button) {
+      return;
+    }
+
+    button.disabled = !enabled;
+
+    if (enabled) {
+      button.removeAttribute("aria-disabled");
+
+      return;
+    }
+
+    button.setAttribute("aria-disabled", "true");
+  }
+
+  function stopTurnstileReadyWatcher() {
+    if (turnstileReadyInterval === null) {
+      return;
+    }
+
+    window.clearInterval(turnstileReadyInterval);
+    turnstileReadyInterval = null;
+  }
+
+  function watchTurnstileReady() {
+    stopTurnstileReadyWatcher();
+
+    if (!checkoutTurnstile()) {
+      return;
+    }
+
+    setPlaceOrderEnabled(turnstileTokenReady());
+
+    turnstileReadyInterval = window.setInterval(function () {
+      if (!checkoutTurnstile()) {
+        stopTurnstileReadyWatcher();
+
+        return;
+      }
+
+      setPlaceOrderEnabled(turnstileTokenReady());
+    }, 100);
+  }
+
   function handleCheckoutSubmit(event) {
+    if (checkoutTurnstile() && !turnstileTokenReady()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      setPlaceOrderEnabled(false);
+
+      return;
+    }
+
     var captcha = executableCaptcha();
 
     /*
@@ -339,11 +418,14 @@
     form.addEventListener("submit", handleCheckoutSubmit, true);
   }
 
+  watchTurnstileReady();
+
   jQuery(document.body).on("updated_checkout", function () {
     mountTurnstile();
     mountHCaptcha();
     mountRecaptcha();
 
+    watchTurnstileReady();
     initializeExecutableCaptcha();
   });
 
