@@ -20,7 +20,11 @@
   }
 
   function executableCaptcha() {
-    var hcaptcha = document.querySelector(HCAPTCHA_INVISIBLE_SELECTOR);
+    var formSelector = '[data-form-id="woocommerce-checkout"]';
+
+    var hcaptcha = document.querySelector(
+      HCAPTCHA_INVISIBLE_SELECTOR + formSelector,
+    );
 
     if (hcaptcha) {
       return {
@@ -29,7 +33,9 @@
       };
     }
 
-    var googleInvisible = document.querySelector(GOOGLE_INVISIBLE_SELECTOR);
+    var googleInvisible = document.querySelector(
+      GOOGLE_INVISIBLE_SELECTOR + formSelector,
+    );
 
     if (googleInvisible) {
       return {
@@ -38,7 +44,9 @@
       };
     }
 
-    var googleScore = document.querySelector(GOOGLE_SCORE_SELECTOR);
+    var googleScore = document.querySelector(
+      GOOGLE_SCORE_SELECTOR + formSelector,
+    );
 
     if (googleScore) {
       return {
