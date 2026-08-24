@@ -16,6 +16,7 @@
 
 # Tests & QA config
 /tests
+/.phpunit.cache
 /phpunit.xml
 /phpunit.xml.dist
 /phpcs.xml

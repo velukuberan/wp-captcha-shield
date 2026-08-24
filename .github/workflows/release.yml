@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version label for the zip (e.g. 0.1.0-beta1)"
+        description: "Version label for the zip (e.g. 1.0.0 or 1.1.0-beta1)"
         required: true
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "label=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            # strip the leading "v" from the tag
+            # Strip the leading "v" from the tag.
             echo "label=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           fi
 
@@ -62,6 +62,7 @@ jobs:
           HEADER_VERSION=$(grep -E "^\s*\*\s*Version:" wp-captcha-shield.php \
             | head -n1 | sed -E 's/.*Version:\s*//' | tr -d '[:space:]')
           TAG_VERSION="${{ steps.version.outputs.label }}"
+
           if [ "$HEADER_VERSION" != "$TAG_VERSION" ]; then
             echo "::error::Plugin header version ($HEADER_VERSION) does not match tag ($TAG_VERSION)."
             exit 1
@@ -71,6 +72,7 @@ jobs:
         run: |
           SLUG=wp-captcha-shield
           mkdir -p "build/${SLUG}"
+
           rsync -av \
             --exclude-from=.distignore \
             --exclude='.git' \
@@ -90,16 +92,33 @@ jobs:
               --output "$file"
           done
 
+      - name: Minify production CSS
+        run: |
+          find build/wp-captcha-shield/assets/css \
+            -type f \
+            -name '*.css' \
+            -print0 |
+          while IFS= read -r -d '' file; do
+            npx --no-install cleancss \
+              --output "${file}.tmp" \
+              "$file"
+
+            mv "${file}.tmp" "$file"
+          done
+
       - name: Create zip
         id: zip
         run: |
           SLUG=wp-captcha-shield
           LABEL="${{ steps.version.outputs.label }}"
           ZIP_NAME="${SLUG}-${LABEL}.zip"
+
           cd build
           zip -r "../${ZIP_NAME}" "${SLUG}" -x "*.DS_Store"
           cd ..
+
           echo "path=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+
           echo ""
           echo "Zip contents summary:"
           unzip -l "${ZIP_NAME}" | tail -n 20
@@ -118,5 +137,5 @@ jobs:
         with:
           files: ${{ steps.zip.outputs.path }}
           draft: true
-          prerelease: true
+          prerelease: ${{ contains(steps.version.outputs.label, '-') }}
           generate_release_notes: true

@@ -1,10 +1,10 @@
 === WP Captcha Shield ===
 Contributors: velukuberan
 Tags: captcha, spam, woocommerce, security, recaptcha, hcaptcha, turnstile
-Requires at least: 6.9
-Tested up to: 6.9
+Requires at least: 6.7.0
+Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.0-beta1
+Stable tag: 1.0.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -29,7 +29,16 @@ WordPress:
 * Lost password
 * Comments
 
-WooCommerce integrations (login, registration, lost password, product reviews, classic checkout, block checkout) are in active development for the 1.0 release.
+WooCommerce:
+
+* Login
+* Registration
+* Lost password
+* Product reviews
+* Classic checkout
+* Block checkout
+
+WooCommerce 10.1.0 or newer is required for WooCommerce protection.
 
 **Design principles**
 
@@ -82,7 +91,7 @@ You choose one global default provider. Individual forms can override the global
 
 = Does this plugin work with WooCommerce block checkout? =
 
-Block checkout support is under active development and will land before 1.0. Beta builds may include partial or unstable block-checkout behaviour — see the release notes for the specific beta you install.
+Yes. WP Captcha Shield supports WooCommerce Block Checkout using the Store API checkout flow. CAPTCHA token data is passed through checkout extension data and verified server-side before checkout completes.
 
 == Screenshots ==
 
@@ -90,15 +99,23 @@ Block checkout support is under active development and will land before 1.0. Bet
 2. Per-form override configuration.
 3. Provider credentials and mode configuration.
 
-== Known Issues (Beta) ==
-
-* WooCommerce block checkout: invisible and score-based modes for hCaptcha, reCAPTCHA Enterprise, and Cloudflare Turnstile are still being wired up. Checkbox/managed modes work as expected.
-* WooCommerce classic checkout, login, registration, lost password, and product review integrations are still being finalised.
-* This is a beta release intended for testing. Do not deploy to production.
+== Support ==
 
 Please report issues at: https://github.com/velukuberan/wp-captcha-shield/issues
 
 == Changelog ==
+
+= 1.0.0 =
+* First stable release.
+* Added full WooCommerce support for login, registration, lost password, product reviews, Classic Checkout, and Block Checkout.
+* Added Cloudflare Turnstile support for Managed, Non-Interactive, and Invisible modes.
+* Added Google reCAPTCHA Enterprise support for Score-based, Checkbox, and Invisible modes.
+* Added hCaptcha support for Checkbox and Invisible modes.
+* Added server-side verification with shared verification results.
+* Added global provider selection and per-form provider overrides.
+* Added admin environment compatibility status.
+* Added production release packaging with minified JavaScript assets.
+* Validated supported providers and checkout flows across minimum and current supported environments.
 
 = 0.1.0-beta1 =
 * Initial public beta.
@@ -110,5 +127,8 @@ Please report issues at: https://github.com/velukuberan/wp-captcha-shield/issues
 
 == Upgrade Notice ==
 
+= 1.0.0 =
+First stable release with full WordPress and WooCommerce CAPTCHA protection, including Classic Checkout and Block Checkout.
+
 = 0.1.0-beta1 =
-Initial beta. For testing only. Back up your site before installing.
+Initial public beta.
