@@ -4,7 +4,7 @@
  * Plugin Name:       WP Captcha Shield
  * Plugin URI:        https://github.com/velukuberan/wp-captcha-shield
  * Description:       Protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers.
- * Version:           0.1.0-beta1
+ * Version:           1.0.0
  * Requires at least: 6.7.0
  * Requires PHP:      8.1
  * Author:            Velmurugan Kuberan

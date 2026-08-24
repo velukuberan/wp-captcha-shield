@@ -5,6 +5,7 @@
     "minify:js": "terser"
   },
   "devDependencies": {
+    "clean-css-cli": "^5.6.3",
     "terser": "^5.50.0"
   }
 }
