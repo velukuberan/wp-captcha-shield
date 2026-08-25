@@ -136,6 +136,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.zip.outputs.path }}
-          draft: true
+          draft: false
           prerelease: ${{ contains(steps.version.outputs.label, '-') }}
           generate_release_notes: true
