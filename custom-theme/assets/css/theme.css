@@ -532,6 +532,12 @@ img {
   font-size: 0.78rem;
   font-weight: 650;
 }
+.sidebar-subgroup-title {
+  margin: 0.75rem 0 0.25rem;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
 .sidebar-nav a {
   display: block;
   margin: 0.12rem 0;
