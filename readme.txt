@@ -16,57 +16,57 @@ WP Captcha Shield protects selected WordPress and WooCommerce forms using config
 
 Choose one global default provider, then optionally override the provider for individual forms or disable CAPTCHA for a specific form.
 
-Supported providers
+**Supported providers**
 
-Cloudflare Turnstile — Managed, Non-Interactive, Invisible
-Google reCAPTCHA Enterprise — Score-based, Checkbox, Invisible
-hCaptcha — Checkbox, Invisible
+* Cloudflare Turnstile — Managed, Non-Interactive, Invisible
+* Google reCAPTCHA Enterprise — Score-based, Checkbox, Invisible
+* hCaptcha — Checkbox, Invisible
 
-Supported WordPress forms
+**Supported WordPress forms**
 
-Login
-Registration
-Lost password
-Comments
+* Login
+* Registration
+* Lost password
+* Comments
 
-Supported WooCommerce forms
+**Supported WooCommerce forms**
 
-Login
-Registration
-Lost password
-Product reviews
-Classic checkout
-Checkout Block
+* Login
+* Registration
+* Lost password
+* Product reviews
+* Classic checkout
+* Checkout Block
 
 WooCommerce is optional. WordPress form protection remains available when WooCommerce is not active.
 
 WooCommerce 10.1.0 or newer is required when WooCommerce protection is used.
 
-Configuration
+**Configuration**
 
-WP Captcha Shield provides one settings page under Settings → WP Captcha Shield.
+WP Captcha Shield provides one settings page under **Settings → WP Captcha Shield**.
 
 The General tab lets you:
 
-choose a global default provider;
-use the global default for individual forms;
-select a different provider for an individual form;
-disable CAPTCHA globally or for an individual form.
+* choose a global default provider;
+* use the global default for individual forms;
+* select a different provider for an individual form;
+* disable CAPTCHA globally or for an individual form.
 
 Separate settings tabs are available for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha.
 
 The Status tab compares the current PHP, WordPress, and WooCommerce versions with the minimum versions supported by WP Captcha Shield.
 
-Security and verification
+**Security and verification**
 
-CAPTCHA verification is performed server-side.
-Protected forms fail closed when required verification cannot be completed.
-Submitted CAPTCHA tokens are treated as untrusted input and are not stored.
-Provider secret credentials remain server-side.
-Raw provider errors, tokens, credentials, and complete provider responses are not exposed to visitors.
-Only the effective CAPTCHA provider is loaded for a protected form.
+* CAPTCHA verification is performed server-side.
+* Protected forms fail closed when required verification cannot be completed.
+* Submitted CAPTCHA tokens are treated as untrusted input and are not stored.
+* Provider secret credentials remain server-side.
+* Raw provider errors, tokens, credentials, and complete provider responses are not exposed to visitors.
+* Only the effective CAPTCHA provider is loaded for a protected form.
 
-Documentation
+**Documentation**
 
 Detailed setup, provider configuration, form guides, and troubleshooting documentation:
 
@@ -78,15 +78,15 @@ https://github.com/velukuberan/wp-captcha-shield
 
 == Installation ==
 
-Install WP Captcha Shield from Plugins → Add New, or upload the plugin package using Plugins → Add New → Upload Plugin.
-Activate WP Captcha Shield.
-Go to Settings → WP Captcha Shield.
-Configure the credentials for at least one CAPTCHA provider.
-On the General tab, select the provider you want to use as the global default.
-Optionally override or disable CAPTCHA for individual WordPress or WooCommerce forms.
-Test the protected forms on your site before relying on them in production.
+1. Install **WP Captcha Shield** from **Plugins → Add New**, or upload the plugin package using **Plugins → Add New → Upload Plugin**.
+2. Activate **WP Captcha Shield**.
+3. Go to **Settings → WP Captcha Shield**.
+4. Configure the credentials for at least one CAPTCHA provider.
+5. On the General tab, select the provider you want to use as the global default.
+6. Optionally override or disable CAPTCHA for individual WordPress or WooCommerce forms.
+7. Test the protected forms on your site before relying on them in production.
 
-Provider setup
+**Provider setup**
 
 Cloudflare Turnstile:
 https://dash.cloudflare.com/?to=/:account/turnstile
@@ -197,7 +197,7 @@ CAPTCHA protection depends on the external provider selected for a protected for
 
 When a provider is enabled, its official browser-side CAPTCHA service may be loaded on pages containing a protected form. When the form is submitted, CAPTCHA verification data is sent to that provider for server-side verification.
 
-See the External services section below for details.
+See the **External services** section below for details.
 
 = Where can I find detailed setup instructions? =
 
@@ -241,11 +241,11 @@ When the protected form is submitted, WP Captcha Shield creates a Google reCAPTC
 
 The assessment can include:
 
-the generated CAPTCHA token;
-the configured site key;
-the visitor's IP address when available;
-the visitor's user agent when available;
-the expected CAPTCHA action when applicable.
+* the generated CAPTCHA token;
+* the configured site key;
+* the visitor's IP address when available;
+* the visitor's user agent when available;
+* the expected CAPTCHA action when applicable.
 
 The Google Cloud project ID and configured API key are used to authenticate the assessment request.
 
@@ -285,13 +285,13 @@ Site owners are responsible for reviewing the terms, privacy requirements, and c
 
 == Screenshots ==
 
-General settings with global provider selection and per-form CAPTCHA overrides.
-Cloudflare Turnstile credentials and widget mode configuration.
-Google reCAPTCHA Enterprise credentials, mode, and minimum-score configuration.
-hCaptcha credentials and display-mode configuration.
-CAPTCHA protection on a WordPress form.
-CAPTCHA protection on a WooCommerce account form.
-CAPTCHA protection on WooCommerce checkout.
+1. General settings with global provider selection and per-form CAPTCHA overrides.
+2. Cloudflare Turnstile credentials and widget mode configuration.
+3. Google reCAPTCHA Enterprise credentials, mode, and minimum-score configuration.
+4. hCaptcha credentials and display-mode configuration.
+5. CAPTCHA protection on a WordPress form.
+6. CAPTCHA protection on a WooCommerce account form.
+7. CAPTCHA protection on WooCommerce checkout.
 
 == Support ==
 
@@ -307,30 +307,30 @@ https://velukuberan.github.io/wp-captcha-shield/
 
 = 1.0.0 =
 
-First stable release.
-Added CAPTCHA protection for WordPress login, registration, lost password, and comments.
-Added WooCommerce protection for login, registration, lost password, product reviews, Classic Checkout, and Checkout Block.
-Added Cloudflare Turnstile support for Managed, Non-Interactive, and Invisible modes.
-Added Google reCAPTCHA Enterprise support for Score-based, Checkbox, and Invisible modes.
-Added hCaptcha support for Checkbox and Invisible modes.
-Added global provider selection and independent per-form provider overrides.
-Added server-side verification with shared verification results.
-Added independent WooCommerce product-review configuration.
-Added Classic Checkout AJAX rehydration.
-Added Checkout Block Store API integration.
-Added admin environment compatibility status.
-Added production release packaging with minified frontend assets.
-Added translation support and translation-template generation.
-Validated supported providers and modes against live provider services.
-Validated minimum and current supported WordPress, WooCommerce, and PHP environments.
+* First stable release.
+* Added CAPTCHA protection for WordPress login, registration, lost password, and comments.
+* Added WooCommerce protection for login, registration, lost password, product reviews, Classic Checkout, and Checkout Block.
+* Added Cloudflare Turnstile support for Managed, Non-Interactive, and Invisible modes.
+* Added Google reCAPTCHA Enterprise support for Score-based, Checkbox, and Invisible modes.
+* Added hCaptcha support for Checkbox and Invisible modes.
+* Added global provider selection and independent per-form provider overrides.
+* Added server-side verification with shared verification results.
+* Added independent WooCommerce product-review configuration.
+* Added Classic Checkout AJAX rehydration.
+* Added Checkout Block Store API integration.
+* Added admin environment compatibility status.
+* Added production release packaging with minified frontend assets.
+* Added translation support and translation-template generation.
+* Validated supported providers and modes against live provider services.
+* Validated minimum and current supported WordPress, WooCommerce, and PHP environments.
 
 = 0.1.0-beta1 =
 
-Initial public beta.
-Added Cloudflare Turnstile, Google reCAPTCHA Enterprise, and hCaptcha providers.
-Added WordPress login, registration, lost password, and comment protection.
-Added server-side verification using a common verification-result model.
-Added global and per-form CAPTCHA configuration.
+* Initial public beta.
+* Added Cloudflare Turnstile, Google reCAPTCHA Enterprise, and hCaptcha providers.
+* Added WordPress login, registration, lost password, and comment protection.
+* Added server-side verification using a common verification-result model.
+* Added global and per-form CAPTCHA configuration.
 
 == Upgrade Notice ==
 
