@@ -43,4 +43,5 @@ nav:
       - hCaptcha: providers/hcaptcha.md
   - Form setup:
       - WordPress login: forms/wordpress-login.md
-  - Troubleshooting: troubleshooting/index.md
+  - Troubleshooting: 
+      - Troubleshooting: troubleshooting/index.md

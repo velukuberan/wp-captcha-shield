@@ -81,7 +81,7 @@ body {
   background: var(--bg);
   color: var(--text-soft);
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.65;
   text-rendering: optimizeLegibility;
 }
