@@ -31,7 +31,6 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - Home: index.md
   - Getting started:
       - Overview: getting-started/index.md
       - Installation: getting-started/installation.md
