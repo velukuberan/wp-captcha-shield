@@ -544,6 +544,10 @@ img {
   font-weight: 650;
 }
 
+.sidebar-subgroup-links {
+  margin-left: 0.65rem;
+}
+
 .sidebar-nav a {
   display: block;
   margin: 0.12rem 0;
@@ -553,9 +557,6 @@ img {
   border-radius: 7px;
 }
 
-.sidebar-subgroup-links a {
-  padding-left: 1.25rem;
-}
 .sidebar-nav a:hover {
   color: var(--text);
   background: var(--surface);

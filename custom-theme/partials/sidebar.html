@@ -10,14 +10,18 @@
 
             {% for child in nav_item.children %}
               {% if child.children %}
-                <p class="sidebar-subgroup-title">{{ child.title }}</p>
+                <div class="sidebar-subgroup">
+                  <p class="sidebar-subgroup-title">{{ child.title }}</p>
 
-                {% for grandchild in child.children %}
-                  <a href="{{ grandchild.url|url }}"
-                     {% if grandchild.active %}class="is-active" aria-current="page"{% endif %}>
-                    {{ grandchild.title }}
-                  </a>
-                {% endfor %}
+                  <div class="sidebar-subgroup-links">
+                    {% for grandchild in child.children %}
+                      <a href="{{ grandchild.url|url }}"
+                         {% if grandchild.active %}class="is-active" aria-current="page"{% endif %}>
+                        {{ grandchild.title }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                </div>
               {% else %}
                 <a href="{{ child.url|url }}"
                    {% if child.active %}class="is-active" aria-current="page"{% endif %}>
@@ -36,4 +40,3 @@
     </nav>
   </div>
 </aside>
-
