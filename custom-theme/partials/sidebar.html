@@ -1,13 +1,17 @@
 <aside class="docs-sidebar" aria-label="Documentation navigation">
   <div class="docs-sidebar__inner">
     <p class="sidebar-label">Documentation</p>
+
     <nav class="sidebar-nav">
       {% for nav_item in nav %}
         {% if nav_item.children %}
           <section class="sidebar-group">
             <p>{{ nav_item.title }}</p>
+
             {% for child in nav_item.children %}
               {% if child.children %}
+                <p class="sidebar-subgroup-title">{{ child.title }}</p>
+
                 {% for grandchild in child.children %}
                   <a href="{{ grandchild.url|url }}"
                      {% if grandchild.active %}class="is-active" aria-current="page"{% endif %}>
