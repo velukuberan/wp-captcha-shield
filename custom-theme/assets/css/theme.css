@@ -576,6 +576,10 @@ img {
 .docs-toc nav a:hover {
   color: var(--text);
 }
+.docs-toc nav a.is-active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
 .docs-toc nav .toc-child {
   padding-left: 1.35rem;
 }
