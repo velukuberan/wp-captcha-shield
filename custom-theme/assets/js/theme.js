@@ -112,7 +112,7 @@
         const base =
           window.WCS_DOCS.baseUrl === "." ? "" : window.WCS_DOCS.baseUrl;
         return `
-        <a class="search-result" href="${base}/${doc.location}">
+        <a class="search-result" href="${window.WCS_DOCS.baseUrl}/${doc.location}">
           <strong>${escapeHtml(doc.title)}</strong>
           <p>${escapeHtml(text)}${text.length === 150 ? "…" : ""}</p>
         </a>
