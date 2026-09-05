@@ -10,8 +10,6 @@ WP Captcha Shield supports:
 
 The mode selected in WP Captcha Shield must match the integration type configured for the reCAPTCHA site key. Changing the plugin setting does not change the key type in Google Cloud.
 
-> **Current form support:** WordPress login is implemented. Other WordPress and WooCommerce form integrations remain planned.
-
 ## Before you begin
 
 You need:

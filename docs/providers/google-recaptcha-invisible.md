@@ -4,8 +4,6 @@ This guide explains how to create a Google reCAPTCHA Enterprise **Invisible** we
 
 Invisible mode does not show the "I'm not a robot" checkbox. Google may still present a CAPTCHA challenge after risk analysis.
 
-> **Current form support:** WordPress login is implemented. Other WordPress and WooCommerce form integrations remain planned.
-
 ## Before you begin
 
 You need:
