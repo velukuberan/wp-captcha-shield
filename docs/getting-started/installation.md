@@ -1,39 +1,46 @@
 # Installation
 
-WP Captcha Shield is under active development and is not yet distributed as a
-production release.
+WP Captcha Shield can be installed from the WordPress admin area using the
+plugin ZIP package.
 
-## Development installation
-
-1. Obtain the project source.
-2. Place it in the WordPress plugins directory.
-3. Install the PHP dependencies:
-
-    ```bash
-    composer install
-    ```
-
-4. Activate **WP Captcha Shield** in WordPress.
-5. Open:
-
-    ```text
-    Settings → WP Captcha Shield
-    ```
-
-## Supported versions
+## Requirements
 
 Minimum supported versions:
 
 - PHP 8.1 or newer
-- WordPress 6.9 or newer
-- WooCommerce 10.9 or newer
+- WordPress 6.7.0 or newer
+- WooCommerce 10.1.0 or newer when WooCommerce protection is used
 
-Primary development targets:
+WooCommerce is optional. WordPress form protection remains available when
+WooCommerce is not installed or active.
 
-- WordPress 7.0
-- WooCommerce 10.9.4
-- a supported PHP 8.x version
+## Install the plugin
 
-!!! warning
+1. In WordPress, go to **Plugins → Add New**.
+2. Select **Upload Plugin**.
+3. Choose the WP Captcha Shield ZIP package.
+4. Select **Install Now**.
+5. Activate **WP Captcha Shield**.
 
-    The plugin is not ready for production use.
+After activation, go to:
+
+    Settings → WP Captcha Shield
+
+## Configure CAPTCHA
+
+1. Configure the credentials for at least one CAPTCHA provider.
+2. On the **General** tab, select the provider you want to use as the global default.
+3. Optionally override or disable CAPTCHA for individual WordPress or WooCommerce forms.
+4. Save the settings.
+5. Test the protected forms on your site.
+
+## Next steps
+
+Continue with the provider setup guide for the provider you want to use:
+
+- [Cloudflare Turnstile](../providers/cloudflare-turnstile.md)
+- [Google reCAPTCHA](../providers/google-recaptcha.md)
+- [hCaptcha](../providers/hcaptcha.md)
+
+After configuring a provider, see the [Form setup](../forms/index.md) guide for
+the global default and per-form configuration model.

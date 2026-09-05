@@ -13,9 +13,6 @@ The mode selected in WP Captcha Shield must match the mode configured for the
 site key in Cloudflare. Changing the plugin setting does not change the widget
 mode in Cloudflare.
 
-> **Current form support:** WordPress login is implemented. Other WordPress
-> and WooCommerce form integrations remain planned.
-
 ## Before you begin
 
 You need a Cloudflare account, a WordPress administrator account, WP Captcha
@@ -275,3 +272,4 @@ token can be generated.
 - [Server-side validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
 - [Testing keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
 - [Rotate the secret key](https://developers.cloudflare.com/turnstile/troubleshooting/rotate-secret-key/)
+

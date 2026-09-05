@@ -77,14 +77,14 @@ title: WP Captcha Shield documentation
       <span class="feature-card__icon">⌁</span>
       <h3>Google reCAPTCHA</h3>
       <p>Score-based, checkbox, and invisible protection through reCAPTCHA Enterprise.</p>
-      <span class="feature-card__meta">Guide in preparation →</span>
+      <span class="feature-card__meta">Open setup →</span>
     </a>
 
     <a class="feature-card" href="providers/hcaptcha/">
       <span class="feature-card__icon">⬡</span>
       <h3>hCaptcha</h3>
       <p>Checkbox and invisible display modes with server-side token verification.</p>
-      <span class="feature-card__meta">Guide in preparation →</span>
+      <span class="feature-card__meta">Open setup →</span>
     </a>
   </div>
 </section>
@@ -123,13 +123,12 @@ title: WP Captcha Shield documentation
   <div class="status-panel">
     <div>
       <span class="eyebrow">Project status</span>
-      <h2>Active development.</h2>
+      <h2>Release ready.</h2>
       <p>
-        Provider foundations are implemented. WordPress login is the currently
-        implemented form integration; remaining WordPress and WooCommerce forms
-        are planned.
+        Provider integrations and supported WordPress and WooCommerce form
+        integrations are implemented and ready for configuration.
       </p>
     </div>
-    <a class="button button--secondary" href="forms/wordpress-login/">View form setup →</a>
+    <a class="button button--secondary" href="forms/">View form setup →</a>
   </div>
 </section>
