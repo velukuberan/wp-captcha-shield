@@ -42,6 +42,6 @@ nav:
           - Invisible setup: providers/google-recaptcha-invisible.md
       - hCaptcha: providers/hcaptcha.md
   - Form setup:
-      - WordPress login: forms/wordpress-login.md
-  - Troubleshooting: 
+      - Overview: forms/index.md
+  - Troubleshooting:
       - Troubleshooting: troubleshooting/index.md
