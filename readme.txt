@@ -1,6 +1,6 @@
 === WP Captcha Shield ===
-Contributors: velukuberan
-Tags: captcha, spam, woocommerce, security, recaptcha, hcaptcha, turnstile
+Contributors: vkuberan
+Tags: captcha, woocommerce, recaptcha, hcaptcha, turnstile
 Requires at least: 6.7.0
 Tested up to: 7.0
 Requires PHP: 8.1
@@ -14,7 +14,7 @@ Protect selected WordPress and WooCommerce forms with Cloudflare Turnstile, Goog
 
 WP Captcha Shield protects selected WordPress and WooCommerce forms using configurable CAPTCHA providers.
 
-Choose one global default provider, then optionally override the provider for individual forms or disable CAPTCHA for a specific form.
+Choose a global default provider, then optionally use a different provider for individual forms or disable CAPTCHA for specific forms.
 
 **Supported providers**
 
@@ -53,7 +53,7 @@ The General tab lets you:
 * select a different provider for an individual form;
 * disable CAPTCHA globally or for an individual form.
 
-Separate settings tabs are available for Cloudflare Turnstile, Google reCAPTCHA, and hCaptcha.
+Separate settings tabs are available for Cloudflare Turnstile, Google reCAPTCHA Enterprise, and hCaptcha.
 
 The Status tab compares the current PHP, WordPress, and WooCommerce versions with the minimum versions supported by WP Captcha Shield.
 
@@ -78,7 +78,7 @@ https://github.com/velukuberan/wp-captcha-shield
 
 == Installation ==
 
-1. Install **WP Captcha Shield** from **Plugins → Add New**, or upload the plugin package using **Plugins → Add New → Upload Plugin**.
+1. Install **WP Captcha Shield** from **Plugins → Add New**, or upload the plugin ZIP package using **Plugins → Add New → Upload Plugin**.
 2. Activate **WP Captcha Shield**.
 3. Go to **Settings → WP Captcha Shield**.
 4. Configure the credentials for at least one CAPTCHA provider.
@@ -117,9 +117,9 @@ hCaptcha supports Checkbox and Invisible display modes.
 
 The best provider depends on your requirements.
 
-Cloudflare Turnstile Managed is the default recommended Turnstile mode and provides a low-friction starting point for many sites.
+Cloudflare Turnstile supports Managed, Non-Interactive, and Invisible modes, with Managed as the default mode in WP Captcha Shield.
 
-Google reCAPTCHA Enterprise is available for sites that want Google Cloud reCAPTCHA assessment-based protection.
+Google reCAPTCHA Enterprise supports Score-based, Checkbox, and Invisible modes using Google Cloud reCAPTCHA assessments.
 
 hCaptcha provides Checkbox and Invisible display modes.
 
@@ -207,7 +207,7 @@ https://velukuberan.github.io/wp-captcha-shield/
 
 == External services ==
 
-WP Captcha Shield integrates with third-party CAPTCHA services. These services are required only when you configure and use the corresponding provider.
+WP Captcha Shield integrates with third-party CAPTCHA services. These services are contacted only when the corresponding CAPTCHA provider is configured and used for a protected form.
 
 A provider's browser-side CAPTCHA service may process information directly from the visitor's browser according to that provider's own policies.
 
@@ -286,10 +286,10 @@ Site owners are responsible for reviewing the terms, privacy requirements, and c
 == Screenshots ==
 
 1. General settings with global provider selection and per-form CAPTCHA overrides.
-2. Cloudflare Turnstile credentials and widget mode configuration.
-3. Google reCAPTCHA Enterprise credentials, mode, and minimum-score configuration.
-4. hCaptcha credentials and display-mode configuration.
-5. CAPTCHA protection on a WordPress form.
+2. Cloudflare Turnstile site key, secret key, and widget mode configuration.
+3. Google reCAPTCHA Enterprise project credentials, mode, and minimum-score configuration.
+4. hCaptcha site key, secret key, and display-mode configuration.
+5. CAPTCHA protection on a WordPress login form.
 6. CAPTCHA protection on a WooCommerce account form.
 7. CAPTCHA protection on WooCommerce checkout.
 
@@ -321,8 +321,6 @@ https://velukuberan.github.io/wp-captcha-shield/
 * Added admin environment compatibility status.
 * Added production release packaging with minified frontend assets.
 * Added translation support and translation-template generation.
-* Validated supported providers and modes against live provider services.
-* Validated minimum and current supported WordPress, WooCommerce, and PHP environments.
 
 = 0.1.0-beta1 =
 
