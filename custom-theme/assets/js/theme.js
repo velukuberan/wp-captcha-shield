@@ -129,4 +129,66 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
   }
+
+  const tocLinks = Array.from(
+    document.querySelectorAll('.docs-toc nav a[href^="#"]'),
+  );
+
+  if (tocLinks.length) {
+    const sections = tocLinks
+      .map((link) => {
+        const id = link.getAttribute("href")?.slice(1);
+    
+        if (!id) {
+          return null;
+        }
+    
+        const section = document.getElementById(id);
+    
+        return section ? { link, section } : null;
+      })
+      .filter(Boolean);
+    
+    const setActiveTocLink = (activeLink) => {
+      tocLinks.forEach((link) => {
+        const isActive = link === activeLink;
+    
+        link.classList.toggle("is-active", isActive);
+    
+        if (isActive) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    };
+
+    const updateActiveSection = () => {
+      const offset = 140;
+      let current = sections[0];
+    
+      sections.forEach((item) => {
+        if (item.section.getBoundingClientRect().top <= offset) {
+          current = item;
+        }
+      });
+    
+      if (current) {
+        setActiveTocLink(current.link);
+      }
+    };
+    
+    tocLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        setActiveTocLink(link);
+      });
+    });
+    
+    window.addEventListener("scroll", updateActiveSection, {
+      passive: true,
+    });
+    
+    updateActiveSection();
+  }
+
 })();
